@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Lock, GraduationCap, Building2, Calendar, Users, ShieldCheck, BookOpen } from "lucide-react";
+import { Lock, GraduationCap, Building2, Calendar, Users, ShieldCheck, BookOpen, UtensilsCrossed } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
@@ -250,6 +250,23 @@ export default function LoginPage() {
 
             {/* Quick login roles */}
             <RoleAccessCenter onQuickLogin={handleQuickLogin} />
+
+            {/* Canteen Staff Portal link */}
+            <Link
+              to="/canteen-staff/login"
+              className="mt-4 flex w-full items-center justify-between rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 hover:bg-amber-100 transition-colors"
+            >
+              <div className="flex items-center gap-3">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-500">
+                  <UtensilsCrossed className="h-4 w-4 text-white" />
+                </div>
+                <div className="text-left">
+                  <p className="text-sm font-semibold text-amber-900">Canteen Staff Portal</p>
+                  <p className="text-xs text-amber-700">Manage orders and menu</p>
+                </div>
+              </div>
+              <span className="text-xs font-medium text-amber-700">Login →</span>
+            </Link>
 
             <p className="text-center text-[10px] text-muted-foreground mt-6">
               © 2026 CampusIQ Platform ·{" "}
