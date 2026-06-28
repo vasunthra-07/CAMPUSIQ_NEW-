@@ -138,6 +138,13 @@ export const moduleRegistry: ModuleDefinition[] = [
     allowedRoles: ALL_ROLES,
   },
   {
+    path: "/app/canteen-dashboard",
+    id: "canteen-dashboard",
+    label: "Canteen Dashboard",
+    icon: UtensilsCrossed,
+    allowedRoles: FACULTY_ADMIN_ROLES,
+  },
+  {
     path: "/app/intelligence",
     id: "intelligence",
     label: "Intelligence Centre",

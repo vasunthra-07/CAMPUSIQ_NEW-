@@ -29,6 +29,7 @@ import CampusIntelligenceCentre from "./pages/CampusIntelligenceCentre";
 import NoticesBoard from "./pages/modules/NoticesBoard";
 import PollsFeedback from "./pages/modules/PollsFeedback";
 import Canteen from "./pages/modules/Canteen";
+import CanteenDashboard from "./pages/modules/CanteenDashboard";
 
 const queryClient = new QueryClient();
 
@@ -77,6 +78,7 @@ const App = () => (
               <Route path="notices" element={<NoticesBoard />} />
               <Route path="polls" element={<PollsFeedback />} />
               <Route path="canteen" element={<Canteen />} />
+              <Route path="canteen-dashboard" element={<CanteenDashboard />} />
             </Route>
 
             <Route path="*" element={<NotFound />} />

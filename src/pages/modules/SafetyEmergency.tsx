@@ -23,7 +23,7 @@ const EMERGENCY_CONTACTS = [
   { role: "Fire Station", number: "101", available: true },
   { role: "Police Outpost", number: "100", available: true },
   { role: "Warden (Boys)", number: "98400-00001", available: true },
-  { role: "Warden (Girls)", number: "98400-00002", available: true },
+  { role: "Warden (Girls)", number: "9940779169", available: true },
 ];
 
 const INCIDENT_TYPES: SafetyIncident["type"][] = ["Accident", "Fire", "Medical", "Security", "Infrastructure", "Other"];
