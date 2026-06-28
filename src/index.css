@@ -1,0 +1,511 @@
+@import './design-system/tokens.css';
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* ═══════════════════════════════════════════
+       CampusIQ Institutional Slate — v2.0
+       Warm off-white surfaces · Dark navy sidebar
+       Deep institutional navy primary · Amber accent
+    ═══════════════════════════════════════════ */
+
+    --background: 35 20% 98%;          /* warm off-white — not cold blue-grey */
+    --foreground: 220 35% 12%;         /* deep charcoal */
+
+    --card: 0 0% 100%;
+    --card-foreground: 220 35% 12%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 35% 12%;
+
+    --primary: 219 62% 28%;            /* #1B3A6B institutional navy */
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 35 15% 93%;           /* warm grey — not cold blue */
+    --secondary-foreground: 220 35% 12%;
+
+    --muted: 35 15% 93%;
+    --muted-foreground: 215 18% 48%;
+
+    --accent: 38 95% 50%;              /* warm amber */
+    --accent-foreground: 220 35% 12%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+
+    --success: 155 65% 38%;
+    --warning: 34 95% 47%;
+
+    --border: 30 12% 89%;              /* warm border, not cold */
+    --input: 30 12% 89%;
+    --ring: 219 62% 28%;
+    --radius: 10px;
+
+    /* Legacy aliases — kept for backward compat */
+    --gold: 38 95% 50%;
+    --gold-light: 42 98% 56%;
+    --gold-foreground: 220 35% 12%;
+    --maroon: 219 62% 28%;
+    --maroon-light: 219 62% 36%;
+    --maroon-warm: 219 55% 32%;
+
+    --surface: 0 0% 100%;
+    --surface-hover: 35 15% 96%;
+    --surface-warm: 0 0% 100%;
+
+    /* ── Sidebar: Dark Navy ──
+       Completely distinct from the main surface.
+       Active state uses amber for warmth.
+    ── */
+    --sidebar-background: 220 38% 11%;         /* #101827 */
+    --sidebar-foreground: 215 18% 62%;
+    --sidebar-primary: 38 95% 52%;             /* amber active */
+    --sidebar-primary-foreground: 220 35% 12%;
+    --sidebar-accent: 220 35% 17%;             /* hover bg */
+    --sidebar-accent-foreground: 215 15% 85%;
+    --sidebar-border: 220 30% 16%;
+    --sidebar-ring: 38 95% 52%;
+
+    --chart-safe: 155 65% 38%;
+    --chart-critical: 0 72% 51%;
+    --chart-observation: 219 62% 28%;
+    --chart-at-risk: 34 95% 47%;
+
+    --teal: 175 60% 40%;
+    --purple-soft: 260 40% 55%;
+  }
+
+  /* ---- AUTH PAGE THEME ---- */
+  .auth-theme {
+    --background: 35 20% 98%;
+    --surface: 0 0% 100%;
+    --primary: 219 62% 28%;
+    --secondary: 219 62% 36%;
+    --foreground: 220 35% 12%;
+    --muted: 215 18% 48%;
+    --border: 30 12% 89%;
+    --radius: 10px;
+
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    font-family: 'Inter', sans-serif;
+  }
+}
+
+@layer base {
+  * { @apply border-border; }
+
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    @apply bg-background text-foreground antialiased;
+  }
+
+  /* Display headings use Plus Jakarta Sans — noticeably different weight & character */
+  h1, h2, h3, h4 {
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+    letter-spacing: -0.025em;
+    font-weight: 700;
+  }
+
+  code, .font-mono, [class*="mono"] {
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  /* Scrollbar — warm-tinted */
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: hsl(30 12% 82%); border-radius: 10px; }
+  ::-webkit-scrollbar-thumb:hover { background: hsl(215 18% 55%); }
+
+  /* Selection */
+  ::selection {
+    background: hsl(219 62% 28% / 0.14);
+    color: hsl(220 35% 12%);
+  }
+}
+
+@layer utilities {
+
+  /* ── WORKSPACE PANEL ── */
+  .workspace-panel {
+    background: hsl(var(--surface));
+    border: 1px solid hsl(var(--border));
+    border-radius: var(--radius);
+    box-shadow: 0 1px 2px hsl(220 35% 12% / 0.05);
+  }
+
+  /* ── CARD ALIASES ── */
+  .card-warm {
+    background: hsl(var(--surface));
+    border: 1px solid hsl(var(--border));
+    border-radius: var(--radius);
+    position: relative;
+    box-shadow: 0 1px 2px hsl(220 35% 12% / 0.05);
+  }
+  .card-warm::before { display: none; }
+
+  .card-glow-hover {
+    transition: box-shadow 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+  }
+  .card-glow-hover:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 14px hsl(220 35% 12% / 0.09);
+    border-color: hsl(var(--primary) / 0.22);
+  }
+
+  .card-critical-glow {
+    border-color: hsl(var(--destructive) / 0.30);
+    background: hsl(0 72% 51% / 0.03);
+  }
+  .card-safe-glow {
+    border-color: hsl(var(--success) / 0.30);
+    background: hsl(155 65% 38% / 0.03);
+  }
+
+  /* ── GLOWS (off — clean professional look) ── */
+  .glow-gold, .glow-maroon, .glow-safe, .glow-critical { box-shadow: none; }
+
+  /* ── GRADIENTS ── */
+  .gradient-maroon {
+    background: linear-gradient(135deg, hsl(219 62% 22%) 0%, hsl(219 62% 32%) 100%);
+  }
+  .gradient-gold {
+    background: linear-gradient(135deg, hsl(34 95% 44%) 0%, hsl(42 98% 56%) 100%);
+  }
+  .gradient-warm {
+    background: linear-gradient(135deg, hsl(35 15% 95%) 0%, hsl(35 15% 91%) 100%);
+  }
+  .gradient-card-top {
+    background: linear-gradient(180deg, hsl(0 0% 100%) 0%, hsl(35 15% 98%) 100%);
+  }
+  .gradient-hero {
+    /* Used on login/auth pages — a dignified dark navy gradient */
+    background: linear-gradient(145deg, hsl(220 38% 9%) 0%, hsl(219 55% 20%) 60%, hsl(219 45% 28%) 100%);
+  }
+  .gradient-text-gold {
+    background: linear-gradient(135deg, hsl(34 95% 44%), hsl(42 98% 60%));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .gradient-text-warm {
+    background: linear-gradient(135deg, hsl(219 62% 35%), hsl(219 62% 50%));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* ── FONT UTILITY ── */
+  .font-syne { font-family: 'Plus Jakarta Sans', system-ui, sans-serif; }
+  .font-display { font-family: 'Plus Jakarta Sans', system-ui, sans-serif; letter-spacing: -0.025em; }
+
+  /* ── SHIMMER (subtle amber) ── */
+  .shimmer-btn::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(105deg,
+      transparent 35%,
+      hsl(38 95% 50% / 0.20) 50%,
+      transparent 65%);
+    transform: translateX(-100%);
+    transition: transform 0s;
+  }
+  .shimmer-btn:hover::after {
+    transform: translateX(100%);
+    transition: transform 0.5s ease;
+  }
+
+  /* ── BADGES / STATUS ── */
+  .badge-safe {
+    background: hsl(155 65% 38% / 0.10);
+    color: hsl(155 65% 30%);
+    border: 1px solid hsl(155 65% 38% / 0.22);
+  }
+  .badge-critical {
+    background: hsl(0 72% 51% / 0.09);
+    color: hsl(0 72% 42%);
+    border: 1px solid hsl(0 72% 51% / 0.22);
+  }
+  .badge-observation {
+    background: hsl(219 62% 28% / 0.09);
+    color: hsl(219 62% 36%);
+    border: 1px solid hsl(219 62% 28% / 0.22);
+  }
+  .badge-at-risk {
+    background: hsl(34 95% 47% / 0.11);
+    color: hsl(28 90% 36%);
+    border: 1px solid hsl(34 95% 47% / 0.28);
+  }
+
+  /* ── ANIMATIONS ── */
+  @keyframes critical-pulse {
+    0%, 100% { box-shadow: 0 0 0 0 hsl(0 72% 51% / 0.28); }
+    50% { box-shadow: 0 0 0 4px hsl(0 72% 51% / 0); }
+  }
+  @keyframes fade-up {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  @keyframes slide-right {
+    from { transform: translateX(-14px); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+  }
+  @keyframes float-slow {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-5px); }
+  }
+  @keyframes shimmer-sweep {
+    0% { background-position: -200% center; }
+    100% { background-position: 200% center; }
+  }
+  @keyframes spin-slow {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+  @keyframes scale-in {
+    from { transform: scale(0.95); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+  @keyframes campus-pulse-beat {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.04); }
+  }
+  @keyframes glow-breathe {
+    0%, 100% { box-shadow: 0 0 16px hsl(38 95% 50% / 0.12); }
+    50% { box-shadow: 0 0 32px hsl(38 95% 50% / 0.28); }
+  }
+  @keyframes progress-fill {
+    from { width: 0%; }
+    to { width: var(--target-width); }
+  }
+  @keyframes dot-bounce {
+    0%, 80%, 100% { transform: translateY(0); opacity: 0.4; }
+    40% { transform: translateY(-5px); opacity: 1; }
+  }
+
+  .animate-fade-up { animation: fade-up 0.38s ease forwards; }
+  .animate-fade-in { animation: fade-in 0.28s ease forwards; }
+  .animate-slide-right { animation: slide-right 0.32s ease forwards; }
+  .animate-float { animation: float-slow 4s ease-in-out infinite; }
+  .animate-scale-in { animation: scale-in 0.28s ease forwards; }
+  .animate-campus-pulse-beat { animation: campus-pulse-beat 2s ease-in-out infinite; }
+  .animate-glow-breathe { animation: glow-breathe 3s ease-in-out infinite; }
+  .animate-spin-slow { animation: spin-slow 8s linear infinite; }
+  .animate-progress { animation: progress-fill 1s ease forwards; }
+
+  /* Staggered delays */
+  .stagger-1 { animation-delay: 0.05s; }
+  .stagger-2 { animation-delay: 0.10s; }
+  .stagger-3 { animation-delay: 0.15s; }
+  .stagger-4 { animation-delay: 0.20s; }
+  .stagger-5 { animation-delay: 0.25s; }
+
+  /* ── TYPING DOTS (AI chat) ── */
+  .typing-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: hsl(38 95% 50%);
+    animation: dot-bounce 1.2s ease-in-out infinite;
+  }
+  .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+  .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+  /* ── PROGRESS BARS ── */
+  .progress-warm {
+    /* Semester / primary progress — navy-to-amber gradient */
+    background: linear-gradient(90deg,
+      hsl(219 62% 28%) 0%,
+      hsl(219 62% 36%) 50%,
+      hsl(38 95% 52%) 100%);
+    border-radius: 100px;
+  }
+  .progress-safe {
+    background: linear-gradient(90deg, hsl(155 65% 32%), hsl(155 65% 46%));
+    border-radius: 100px;
+  }
+  .progress-danger {
+    background: linear-gradient(90deg, hsl(0 72% 40%), hsl(0 72% 54%));
+    border-radius: 100px;
+  }
+
+  /* ── SIDEBAR NAV ACTIVE STATE (on dark navy sidebar) ── */
+  .nav-active {
+    background: hsl(38 95% 52% / 0.15);
+    border-left: 3px solid hsl(38 95% 52%);     /* amber accent line */
+    color: hsl(38 95% 58%);                       /* amber text */
+    padding-left: calc(0.75rem - 3px);
+    font-weight: 600;
+  }
+  .nav-active svg { color: hsl(38 95% 58%); }
+
+  /* ── INPUT STYLING ── */
+  .input-warm {
+    background: hsl(var(--surface));
+    border: 1px solid hsl(var(--border));
+    border-radius: calc(var(--radius) - 2px);
+    color: hsl(var(--foreground));
+    transition: border-color 0.18s, box-shadow 0.18s;
+  }
+  .input-warm:focus {
+    outline: none;
+    border-color: hsl(var(--primary) / 0.45);
+    box-shadow: 0 0 0 3px hsl(var(--primary) / 0.09);
+  }
+  .input-warm::placeholder { color: hsl(var(--muted-foreground)); }
+
+  /* ── BUTTON STYLES ── */
+  .btn-primary {
+    background: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
+    border: 1px solid hsl(var(--primary));
+    border-radius: calc(var(--radius) - 2px);
+    font-family: 'Inter', system-ui, sans-serif;
+    font-weight: 600;
+    transition: background 0.15s, transform 0.15s, box-shadow 0.15s;
+    box-shadow: 0 1px 3px hsl(219 62% 28% / 0.25), 0 1px 2px hsl(219 62% 28% / 0.15);
+  }
+  .btn-primary:hover {
+    background: hsl(219 62% 23%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px hsl(219 62% 28% / 0.28);
+  }
+  .btn-primary:active { transform: translateY(0); }
+
+  .btn-secondary {
+    background: hsl(var(--surface));
+    color: hsl(var(--foreground));
+    border: 1px solid hsl(var(--border));
+    border-radius: calc(var(--radius) - 2px);
+    font-weight: 500;
+    transition: background 0.18s, border-color 0.18s;
+  }
+  .btn-secondary:hover {
+    background: hsl(var(--muted));
+    border-color: hsl(var(--primary) / 0.28);
+  }
+
+  .btn-ghost {
+    background: transparent;
+    color: hsl(var(--muted-foreground));
+    border-radius: calc(var(--radius) - 2px);
+    transition: background 0.14s, color 0.14s;
+  }
+  .btn-ghost:hover {
+    background: hsl(var(--muted));
+    color: hsl(var(--foreground));
+  }
+
+  /* ── DIVIDER ── */
+  .divider-warm {
+    height: 1px;
+    background: hsl(var(--border));
+  }
+
+  /* ── SECTION LABEL (mono, small caps) ── */
+  .section-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: hsl(var(--muted-foreground));
+    font-weight: 500;
+  }
+
+  /* On dark sidebar, section labels should be dimmer */
+  .bg-sidebar .section-label,
+  [data-sidebar] .section-label {
+    color: hsl(215 18% 42%);
+  }
+
+  /* ── STAT RING (SVG circular score) ── */
+  .stat-ring-track { stroke: hsl(30 12% 88%); }
+  .stat-ring-fill-safe { stroke: hsl(155 65% 42%); }
+  .stat-ring-fill-warn { stroke: hsl(34 95% 50%); }
+  .stat-ring-fill-crit { stroke: hsl(0 72% 52%); }
+  .stat-ring-fill-gold { stroke: hsl(38 95% 52%); }
+
+  /* ── TOOLTIP ── */
+  .tooltip-warm {
+    background: hsl(220 38% 13%);
+    border: 1px solid hsl(220 30% 20%);
+    border-radius: 8px;
+    color: hsl(215 20% 82%);
+    font-size: 12px;
+    box-shadow: 0 8px 24px hsl(0 0% 0% / 0.30);
+  }
+
+  /* ── CHAT BUBBLES ── */
+  .bubble-user {
+    background: hsl(var(--primary));
+    border-radius: 14px 14px 4px 14px;
+    color: hsl(var(--primary-foreground));
+  }
+  .bubble-ai {
+    background: hsl(var(--muted));
+    border: 1px solid hsl(var(--border));
+    border-radius: 14px 14px 14px 4px;
+    color: hsl(var(--foreground));
+  }
+
+  /* ── NOTIFICATION DOT ── */
+  .notif-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: hsl(var(--destructive));
+  }
+
+  .hero-mesh {
+    /* Login page background — dark, dignified */
+    background: linear-gradient(145deg, hsl(220 38% 9%) 0%, hsl(219 55% 18%) 55%, hsl(219 45% 26%) 100%);
+  }
+
+  .bg-dot-pattern { display: none; }
+
+  /* ── WEEK PILLS ── */
+  .week-pill-upcoming {
+    background: hsl(34 95% 47% / 0.10);
+    border: 1px solid hsl(34 95% 47% / 0.24);
+    color: hsl(28 90% 36%);
+    border-radius: 100px;
+    font-size: 11px;
+    padding: 3px 10px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .week-pill-danger {
+    background: hsl(0 72% 51% / 0.08);
+    border: 1px solid hsl(0 72% 51% / 0.22);
+    color: hsl(0 72% 42%);
+    border-radius: 100px;
+    font-size: 11px;
+    padding: 3px 10px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+}
+
+/* ── RADIX DIALOG (global override — unchanged) ── */
+[data-radix-dialog-content] {
+  position: fixed !important;
+  left: 50% !important;
+  top: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  z-index: 9999 !important;
+  max-height: 85vh !important;
+  overflow-y: auto !important;
+  margin: 0 !important;
+}
+[data-radix-dialog-overlay] {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 9998 !important;
+}

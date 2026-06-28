@@ -1,0 +1,14 @@
+{
+  "users": [
+    { "id": 1, "userId": "CIT2022001", "password": "$2a$10$UFduiDXthJZSSGSYXEYA1.B5.PBeWeGvfyQ.7xoO5dw4RkFFidbqe", "role": "Student", "name": "Arun Kumar", "department": "AI & DS", "studentId": "CIT01" },
+    { "id": 2, "userId": "CIT2022002", "password": "$2a$10$X0cTiwBSeewjoV3IMDyEZ.Jk91d5lzq2Z.vStl.qlNvw63lb1V.Fu", "role": "Student", "name": "Priya D.", "department": "AI & DS", "studentId": "CIT02" },
+    { "id": 3, "userId": "CIT2022003", "password": "$2a$10$AP3abrvJchz4xzvf61jm7OCl//myFVZ40xmxNY217QQsuaFVN2wEq", "role": "Student", "name": "Sanjay R.", "department": "AI & DS", "studentId": "CIT03" },
+    { "id": 4, "userId": "FAC001", "password": "$2a$10$9dKd3UeFIUqU5DRNMTO4tOOE.dPDdIv5ZnddWmDnas0hF98yBLd0e", "role": "Subject Teacher", "name": "Dr. S. Kavitha", "department": "AI & DS" },
+    { "id": 5, "userId": "MNT001", "password": "$2a$10$QhjTWESh4oEL/o2E851caO1EXim8JX5HhAiHnwOpsCOD0eWAucj9m", "role": "Mentor", "name": "Dr. R. Meenakshi", "department": "AI & DS" },
+    { "id": 6, "userId": "HOD001", "password": "$2a$10$jjQ1LwguaZiYYJTW8hUWuumPpL1T6Ek6jl6VNQ6f5B6of0Hb/ffce", "role": "HOD", "name": "Dr. P. Anandan", "department": "AI & DS" },
+    { "id": 7, "userId": "PRN001", "password": "$2a$10$eRvOPGhcL5TG6C7deYyYueXqh9STXWSI4TygXB7zxsilde3GzT5N.", "role": "Principal", "name": "Dr. K. Rajkumar", "department": "CIT" },
+    { "id": 8, "userId": "CHR001", "password": "$2a$10$.aPK8OHRxljq7.2pwDRUZeOq1acExEGWNdK0I71u2x0uZgJG1YeIS", "role": "Chairman", "name": "Shri. S. Ramabhadran", "department": "CIT" }
+  ],
+  "interventions": [],
+  "alerts": []
+}

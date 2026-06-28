@@ -1,0 +1,99 @@
+/**
+ * CampusIQ Design System — Canonical Tokens
+ * Theme: Institutional Slate · v2.0
+ * Import before Tailwind layers in index.css
+ */
+
+:root {
+  /* ── Color: Brand ── */
+  /* Institutional navy — distinguished from generic SaaS blue */
+  --ciq-color-primary: 219 62% 28%;          /* #1B3A6B deep institutional navy */
+  --ciq-color-primary-hover: 219 62% 23%;
+  --ciq-color-primary-foreground: 0 0% 100%;
+
+  /* Accent: Warm amber — gives the platform warmth & energy */
+  --ciq-color-accent: 38 95% 50%;            /* #F59E0B warm amber */
+  --ciq-color-accent-hover: 34 95% 44%;
+  --ciq-color-accent-foreground: 220 35% 12%;
+
+  /* ── Color: Surface ── */
+  --ciq-color-background: 35 20% 98%;        /* #FAF9F7 warm off-white */
+  --ciq-color-surface: 0 0% 100%;
+  --ciq-color-surface-raised: 0 0% 100%;
+  --ciq-color-muted: 35 15% 93%;             /* warm grey (not cold blue-grey) */
+  --ciq-color-border: 30 12% 89%;            /* warm border */
+
+  /* ── Color: Sidebar (dark) ── */
+  --ciq-color-sidebar-bg: 220 38% 11%;       /* #101827 rich dark navy */
+  --ciq-color-sidebar-fg: 215 18% 62%;       /* muted light text */
+  --ciq-color-sidebar-active-bg: 38 90% 50%; /* amber active item */
+  --ciq-color-sidebar-active-fg: 220 35% 12%;
+  --ciq-color-sidebar-hover-bg: 220 35% 17%; /* subtle hover */
+  --ciq-color-sidebar-border: 220 30% 16%;
+
+  /* ── Color: Text ── */
+  --ciq-color-text: 220 35% 12%;             /* #121C2E deep charcoal */
+  --ciq-color-text-muted: 215 18% 48%;
+
+  /* ── Color: Semantic ── */
+  --ciq-color-success: 155 65% 38%;          /* #17946A rich green */
+  --ciq-color-warning: 34 95% 47%;           /* #ED9A0A amber */
+  --ciq-color-danger: 0 72% 51%;             /* #D92626 clear red */
+  --ciq-color-info: 199 75% 38%;             /* #159AC4 info blue (different from primary) */
+
+  /* ── Spacing (4px base) ── */
+  --ciq-space-1: 4px;
+  --ciq-space-2: 8px;
+  --ciq-space-3: 12px;
+  --ciq-space-4: 16px;
+  --ciq-space-5: 20px;
+  --ciq-space-6: 24px;
+  --ciq-space-8: 32px;
+  --ciq-space-10: 40px;
+  --ciq-space-12: 48px;
+  --ciq-space-16: 64px;
+
+  /* ── Typography ── */
+  --ciq-font-display: 'Plus Jakarta Sans', system-ui, sans-serif;
+  --ciq-font-sans: 'Inter', system-ui, sans-serif;
+  --ciq-font-mono: 'JetBrains Mono', monospace;
+  --ciq-text-xs: 0.6875rem;
+  --ciq-text-sm: 0.8125rem;
+  --ciq-text-base: 0.875rem;
+  --ciq-text-lg: 1.125rem;
+  --ciq-text-xl: 1.25rem;
+  --ciq-text-2xl: 1.5rem;
+  --ciq-text-3xl: 1.875rem;
+  --ciq-text-4xl: 2.25rem;
+  --ciq-tracking-tight: -0.025em;
+  --ciq-tracking-wide: 0.08em;
+
+  /* ── Radius ── */
+  --ciq-radius-sm: 6px;
+  --ciq-radius-md: 10px;
+  --ciq-radius-lg: 14px;
+  --ciq-radius-full: 9999px;
+
+  /* ── Shadows (warm-tinted, not cold grey) ── */
+  --ciq-shadow-xs: 0 1px 2px hsl(220 35% 12% / 0.04);
+  --ciq-shadow-sm: 0 1px 3px hsl(220 35% 12% / 0.07), 0 1px 2px hsl(220 35% 12% / 0.04);
+  --ciq-shadow-md: 0 4px 12px hsl(220 35% 12% / 0.09);
+  --ciq-shadow-lg: 0 12px 32px hsl(220 35% 12% / 0.11);
+  --ciq-shadow-xl: 0 24px 48px hsl(220 35% 12% / 0.13);
+  --ciq-shadow-auth: 0 4px 24px hsl(220 35% 12% / 0.07), 0 0 0 1px hsl(30 12% 89% / 0.9);
+
+  /* ── Motion ── */
+  --ciq-duration-fast: 150ms;
+  --ciq-duration-base: 220ms;
+  --ciq-duration-slow: 380ms;
+  --ciq-duration-slower: 580ms;
+  --ciq-ease-default: cubic-bezier(0.25, 0.1, 0.25, 1);
+  --ciq-ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --ciq-ease-spring: cubic-bezier(0.34, 1.2, 0.64, 1);
+
+  /* ── Component ── */
+  --ciq-header-height: 56px;
+  --ciq-sidebar-width: 260px;
+  --ciq-panel-padding: var(--ciq-space-5);
+  --ciq-metric-height: 88px;
+}
