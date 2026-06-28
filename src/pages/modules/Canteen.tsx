@@ -2,8 +2,9 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import {
   UtensilsCrossed, Clock, Star, ShoppingCart, Plus, Minus,
-  CheckCircle2, Flame, Leaf, Tag, Coffee
+  CheckCircle2, Flame, Leaf, Tag, Coffee, X, Search
 } from "lucide-react";
+import { toast } from "sonner";
 
 type MealCategory = "All" | "Breakfast" | "Lunch" | "Snacks" | "Beverages";
 
@@ -70,9 +71,15 @@ const CAT_ICONS: Record<Exclude<MealCategory, "All">, typeof Coffee> = {
 export default function Canteen() {
   const [activeCategory, setActiveCategory] = useState<MealCategory>("All");
   const [cart, setCart] = useState<Record<string, number>>({});
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const [pickupTime, setPickupTime] = useState("12:30 PM");
+  const [vegOnly, setVegOnly] = useState(false);
+  const [search, setSearch] = useState("");
 
-  const filtered = MENU.filter(
-    item => activeCategory === "All" || item.category === activeCategory
+  const filtered = MENU.filter(item =>
+    (activeCategory === "All" || item.category === activeCategory) &&
+    (!vegOnly || item.isVeg) &&
+    (!search || item.name.toLowerCase().includes(search.toLowerCase()))
   );
 
   const specials = MENU.filter(m => m.tag === "Today's Special" || m.tag === "Popular").slice(0, 3);
@@ -123,7 +130,7 @@ export default function Canteen() {
             <ShoppingCart className="h-4 w-4 text-primary" />
             <span className="text-sm font-semibold text-primary">{cartCount} item{cartCount > 1 ? "s" : ""}</span>
             <span className="text-sm font-bold text-foreground">₹{cartTotal}</span>
-            <button className="rounded-lg bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground hover:bg-primary/90 transition-colors">
+            <button onClick={() => setCheckoutOpen(true)} className="rounded-lg bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground hover:bg-primary/90 transition-colors">
               Pre-order
             </button>
           </motion.div>
@@ -208,8 +215,20 @@ export default function Canteen() {
         ))}
       </div>
 
+      {/* Search & filters */}
+      <div className="flex gap-2 flex-wrap items-center">
+        <div className="relative flex-1 min-w-48">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <input type="text" placeholder="Search menu items…" value={search} onChange={e => setSearch(e.target.value)} className="w-full rounded-lg border border-border bg-surface py-2 pl-9 pr-3 text-sm text-foreground focus:border-primary/50 focus:outline-none transition-colors" />
+        </div>
+        <button onClick={() => setVegOnly(!vegOnly)} className={`flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-xs font-medium transition-all ${vegOnly ? "bg-emerald-600 border-emerald-600 text-white" : "border-border bg-surface text-muted-foreground hover:border-emerald-600 hover:text-emerald-700"}`}>
+          <Leaf className="h-3 w-3" /> Veg Only
+        </button>
+      </div>
+
       {/* Menu grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+        {filtered.length === 0 && <div className="col-span-3 py-8 text-center text-muted-foreground text-sm">No items match your search.</div>}
         {filtered.map((item, i) => (
           <MenuCard
             key={item.id}
@@ -221,6 +240,52 @@ export default function Canteen() {
           />
         ))}
       </div>
+
+      {/* Checkout Modal */}
+      {checkoutOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/20 backdrop-blur-sm" onClick={() => setCheckoutOpen(false)}>
+          <div className="workspace-panel w-full max-w-md p-6 space-y-4 m-4" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-foreground flex items-center gap-2"><ShoppingCart className="h-5 w-5" /> Pre-Order Summary</h2>
+              <button onClick={() => setCheckoutOpen(false)} className="p-1 text-muted-foreground hover:text-foreground"><X className="h-4 w-4" /></button>
+            </div>
+            <div className="space-y-2 max-h-48 overflow-y-auto">
+              {Object.entries(cart).map(([id, qty]) => {
+                const item = MENU.find(m => m.id === id);
+                if (!item) return null;
+                return (
+                  <div key={id} className="flex items-center justify-between text-sm">
+                    <div className="flex items-center gap-2">
+                      <span className={`h-3 w-3 rounded-sm border-2 ${item.isVeg ? "border-emerald-600" : "border-red-500"}`} />
+                      <span>{item.name} × {qty}</span>
+                    </div>
+                    <span className="font-medium tabular-nums">₹{item.price * qty}</span>
+                  </div>
+                );
+              })}
+            </div>
+            <div className="border-t border-border pt-3">
+              <div className="flex justify-between text-base font-bold"><span>Total</span><span>₹{cartTotal}</span></div>
+            </div>
+            <div className="space-y-1.5">
+              <label className="section-label">Pickup Time</label>
+              <select value={pickupTime} onChange={e => setPickupTime(e.target.value)} className="w-full input-warm px-3 py-2.5 text-sm">
+                {["12:00 PM", "12:15 PM", "12:30 PM", "12:45 PM", "1:00 PM", "1:15 PM", "1:30 PM"].map(t => <option key={t}>{t}</option>)}
+              </select>
+            </div>
+            <div className="flex gap-3 pt-2">
+              <button onClick={() => setCheckoutOpen(false)} className="btn-secondary flex-1 py-2.5 text-sm rounded-lg">Cancel</button>
+              <button onClick={() => {
+                const orderNo = `ORD${Date.now().toString().slice(-4)}`;
+                toast.success(`Pre-order ${orderNo} confirmed! Ready at ${pickupTime}. Show this to the counter.`, { duration: 8000 });
+                setCart({}); setCheckoutOpen(false);
+              }} className="btn-primary flex-1 py-2.5 text-sm rounded-lg font-semibold">
+                Confirm Pre-order
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

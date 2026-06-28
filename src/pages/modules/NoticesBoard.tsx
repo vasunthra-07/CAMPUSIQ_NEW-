@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Bell, Pin, ChevronRight, Search, Tag, Calendar, User, Megaphone, BookOpen, ShieldCheck, GraduationCap, Building2 } from "lucide-react";
+import { Bell, Pin, ChevronRight, Search, Tag, Calendar, User, Megaphone, BookOpen, ShieldCheck, GraduationCap, Building2, Plus, Trash2, X } from "lucide-react";
+import { toast } from "sonner";
 
 type Category = "All" | "Academic" | "Administrative" | "Events" | "Safety" | "Library";
 
@@ -105,12 +106,19 @@ const CATEGORY_META: Record<Exclude<Category, "All">, { icon: typeof Bell; color
 
 const CATEGORY_TABS: Category[] = ["All", "Academic", "Administrative", "Events", "Safety", "Library"];
 
+const EMPTY_NOTICE_FORM = { title: "", body: "", category: "Academic" as Exclude<Category, "All">, urgent: false };
+
 export default function NoticesBoard() {
+  const [notices, setNotices] = useState<Notice[]>(NOTICES);
   const [activeCategory, setActiveCategory] = useState<Category>("All");
   const [search, setSearch] = useState("");
   const [expanded, setExpanded] = useState<string | null>(null);
+  const [composeOpen, setComposeOpen] = useState(false);
+  const [form, setForm] = useState(EMPTY_NOTICE_FORM);
+  const [formErrors, setFormErrors] = useState<{ title?: string; body?: string }>({});
+  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
 
-  const filtered = NOTICES.filter(n => {
+  const filtered = notices.filter(n => {
     const matchCat = activeCategory === "All" || n.category === activeCategory;
     const matchSearch =
       search.trim() === "" ||
@@ -121,6 +129,41 @@ export default function NoticesBoard() {
 
   const pinned = filtered.filter(n => n.pinned);
   const regular = filtered.filter(n => !n.pinned);
+
+  const togglePin = (id: string) => {
+    setNotices(prev => prev.map(n => n.id === id ? { ...n, pinned: !n.pinned } : n));
+    toast.success("Notice pin status updated");
+  };
+
+  const deleteNotice = (id: string) => {
+    setNotices(prev => prev.filter(n => n.id !== id));
+    toast.success("Notice deleted");
+    setDeleteConfirm(null);
+    if (expanded === id) setExpanded(null);
+  };
+
+  const submitNotice = (ev: React.FormEvent) => {
+    ev.preventDefault();
+    const e: { title?: string; body?: string } = {};
+    if (!form.title.trim()) e.title = "Title is required";
+    if (!form.body.trim()) e.body = "Body is required";
+    setFormErrors(e);
+    if (Object.keys(e).length > 0) return;
+    const next: Notice = {
+      id: `n${Date.now()}`,
+      title: form.title,
+      body: form.body,
+      category: form.category,
+      author: "Admin",
+      date: new Date().toLocaleString("en-IN", { day: "numeric", month: "short", year: "numeric" }),
+      urgent: form.urgent,
+    };
+    setNotices(prev => [next, ...prev]);
+    toast.success("Notice posted successfully");
+    setComposeOpen(false);
+    setForm(EMPTY_NOTICE_FORM);
+    setFormErrors({});
+  };
 
   return (
     <div className="space-y-6">
@@ -138,10 +181,13 @@ export default function NoticesBoard() {
           <div>
             <h1 className="text-xl font-bold text-foreground tracking-tight">Notices Board</h1>
             <p className="text-sm text-muted-foreground mt-0.5">
-              {NOTICES.length} notices · {pinned.length > 0 ? `${pinned.length} pinned` : "No pinned notices"}
+              {notices.length} notices · {pinned.length > 0 ? `${pinned.length} pinned` : "No pinned notices"}
             </p>
           </div>
         </div>
+        <button onClick={() => setComposeOpen(true)} className="btn-primary flex items-center gap-2 px-4 py-2 text-sm rounded-lg">
+          <Plus className="h-4 w-4" /> Post Notice
+        </button>
 
         {/* Search */}
         <div className="relative w-full sm:w-64">
@@ -201,6 +247,8 @@ export default function NoticesBoard() {
               index={i}
               expanded={expanded === notice.id}
               onToggle={() => setExpanded(expanded === notice.id ? null : notice.id)}
+              onPin={() => togglePin(notice.id)}
+              onDelete={() => setDeleteConfirm(notice.id)}
             />
           ))}
         </div>
@@ -222,6 +270,8 @@ export default function NoticesBoard() {
               index={i}
               expanded={expanded === notice.id}
               onToggle={() => setExpanded(expanded === notice.id ? null : notice.id)}
+              onPin={() => togglePin(notice.id)}
+              onDelete={() => setDeleteConfirm(notice.id)}
             />
           ))}
         </div>
@@ -234,6 +284,62 @@ export default function NoticesBoard() {
           <p className="text-xs text-muted-foreground/60 mt-1">Try a different category or search term</p>
         </div>
       )}
+
+      {/* Compose Notice Modal */}
+      {composeOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/20 backdrop-blur-sm" onClick={() => setComposeOpen(false)}>
+          <form onSubmit={submitNotice} onClick={e => e.stopPropagation()} className="workspace-panel w-full max-w-lg p-6 space-y-4 m-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-foreground">Post Notice</h2>
+              <button type="button" onClick={() => setComposeOpen(false)} className="p-1 text-muted-foreground hover:text-foreground"><X className="h-4 w-4" /></button>
+            </div>
+            <div className="space-y-1.5">
+              <label className="section-label">Title *</label>
+              <input value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} required placeholder="Notice title…"
+                className={`w-full input-warm px-3 py-2.5 text-sm ${formErrors.title ? "border-destructive" : ""}`} />
+              {formErrors.title && <p className="text-xs text-destructive">{formErrors.title}</p>}
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <label className="section-label">Category</label>
+                <select value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value as Exclude<Category, "All"> }))} className="w-full input-warm px-3 py-2.5 text-sm">
+                  {(["Academic", "Administrative", "Events", "Safety", "Library"] as const).map(c => <option key={c}>{c}</option>)}
+                </select>
+              </div>
+              <div className="space-y-1.5 flex flex-col justify-end">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" checked={form.urgent} onChange={e => setForm(f => ({ ...f, urgent: e.target.checked }))} className="h-4 w-4 accent-red-600" />
+                  <span className="text-sm text-foreground">Mark as Urgent</span>
+                </label>
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <label className="section-label">Body *</label>
+              <textarea value={form.body} onChange={e => setForm(f => ({ ...f, body: e.target.value }))} required rows={5}
+                placeholder="Notice content…" className={`w-full input-warm px-3 py-2.5 text-sm resize-none ${formErrors.body ? "border-destructive" : ""}`} />
+              {formErrors.body && <p className="text-xs text-destructive">{formErrors.body}</p>}
+            </div>
+            <div className="flex gap-3 pt-2">
+              <button type="button" onClick={() => setComposeOpen(false)} className="btn-secondary flex-1 py-2.5 text-sm rounded-lg">Cancel</button>
+              <button type="submit" className="btn-primary flex-1 py-2.5 text-sm rounded-lg">Post Notice</button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* Delete Confirm */}
+      {deleteConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/20 backdrop-blur-sm">
+          <div className="workspace-panel w-full max-w-sm p-6 m-4 space-y-4">
+            <h2 className="text-lg font-semibold text-foreground">Delete Notice?</h2>
+            <p className="text-sm text-muted-foreground">This notice will be permanently removed.</p>
+            <div className="flex gap-3">
+              <button onClick={() => setDeleteConfirm(null)} className="btn-secondary flex-1 py-2.5 text-sm rounded-lg">Cancel</button>
+              <button onClick={() => deleteNotice(deleteConfirm)} className="flex-1 py-2.5 text-sm rounded-lg bg-destructive text-destructive-foreground font-medium">Delete</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -243,9 +349,11 @@ interface NoticeCardProps {
   index: number;
   expanded: boolean;
   onToggle: () => void;
+  onPin: () => void;
+  onDelete: () => void;
 }
 
-function NoticeCard({ notice, index, expanded, onToggle }: NoticeCardProps) {
+function NoticeCard({ notice, index, expanded, onToggle, onPin, onDelete }: NoticeCardProps) {
   const meta = CATEGORY_META[notice.category];
   const Icon = meta.icon;
 
@@ -317,6 +425,14 @@ function NoticeCard({ notice, index, expanded, onToggle }: NoticeCardProps) {
           >
             <div className="border-t border-border px-5 pb-5 pt-4">
               <p className="text-sm text-foreground/80 leading-relaxed">{notice.body}</p>
+              <div className="mt-3 flex gap-2">
+                <button onClick={e => { e.stopPropagation(); onPin(); }} className={`flex items-center gap-1 text-xs px-2.5 py-1 rounded-lg border transition-colors ${notice.pinned ? "border-primary/30 text-primary bg-primary/5 hover:bg-primary/10" : "border-border text-muted-foreground hover:border-primary/30 hover:text-primary"}`}>
+                  <Pin className="h-3 w-3" /> {notice.pinned ? "Unpin" : "Pin"}
+                </button>
+                <button onClick={e => { e.stopPropagation(); onDelete(); }} className="flex items-center gap-1 text-xs px-2.5 py-1 rounded-lg border border-border text-muted-foreground hover:border-destructive/30 hover:text-destructive transition-colors">
+                  <Trash2 className="h-3 w-3" /> Delete
+                </button>
+              </div>
             </div>
           </motion.div>
         )}

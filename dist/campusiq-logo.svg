@@ -1,0 +1,41 @@
+<svg width="220" height="52" viewBox="0 0 220 52" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Icon mark: navy rounded square -->
+  <rect x="0" y="4" width="44" height="44" rx="11" fill="#1B3A6B"/>
+
+  <!-- Campus skyline: left building -->
+  <rect x="8" y="26" width="7" height="14" rx="1.5" fill="white" fill-opacity="0.55"/>
+
+  <!-- Campus skyline: center building (tallest) -->
+  <rect x="18" y="15" width="8" height="25" rx="1.5" fill="white"/>
+
+  <!-- Campus skyline: right building -->
+  <rect x="29" y="21" width="7" height="19" rx="1.5" fill="white" fill-opacity="0.55"/>
+
+  <!-- Amber beacon on top of center building -->
+  <circle cx="22" cy="11.5" r="2.8" fill="#F59E0B"/>
+
+  <!-- Wordmark: "Campus" -->
+  <text
+    x="56"
+    y="35"
+    font-family="'Plus Jakarta Sans', Inter, system-ui, -apple-system, sans-serif"
+    font-size="23"
+    font-weight="700"
+    letter-spacing="-0.6"
+    fill="#121C2E"
+  >Campus</text>
+
+  <!-- Wordmark: "IQ" in navy -->
+  <text
+    x="161"
+    y="35"
+    font-family="'Plus Jakarta Sans', Inter, system-ui, -apple-system, sans-serif"
+    font-size="23"
+    font-weight="800"
+    letter-spacing="-0.6"
+    fill="#1B3A6B"
+  >IQ</text>
+
+  <!-- Amber underline accent under IQ -->
+  <rect x="161" y="39" width="26" height="2.5" rx="1.25" fill="#F59E0B"/>
+</svg>

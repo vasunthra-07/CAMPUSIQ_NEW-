@@ -4,6 +4,7 @@ import {
   BarChart2, CheckCircle2, Clock, Users, Send, ChevronRight,
   MessageSquare, Star, TrendingUp, Lock
 } from "lucide-react";
+import { toast } from "sonner";
 
 type PollStatus = "active" | "closed";
 type Tab = "polls" | "feedback";
@@ -109,9 +110,14 @@ const FEEDBACK_AREAS = [
   "Administration", "Safety & Security", "Other",
 ];
 
+function loadVoted(): Record<string, string> {
+  try { return JSON.parse(localStorage.getItem("ciq_poll_votes") ?? "{}"); } catch { return {}; }
+}
+function saveVoted(v: Record<string, string>) { localStorage.setItem("ciq_poll_votes", JSON.stringify(v)); }
+
 export default function PollsFeedback() {
   const [tab, setTab] = useState<Tab>("polls");
-  const [voted, setVoted] = useState<Record<string, string>>({});
+  const [voted, setVoted] = useState<Record<string, string>>(loadVoted);
   const [selected, setSelected] = useState<Record<string, string>>({});
   const [feedbackArea, setFeedbackArea] = useState(FEEDBACK_AREAS[0]);
   const [feedbackText, setFeedbackText] = useState("");
@@ -123,18 +129,19 @@ export default function PollsFeedback() {
 
   const handleVote = (pollId: string) => {
     if (!selected[pollId]) return;
-    setVoted(v => ({ ...v, [pollId]: selected[pollId] }));
+    const next = { ...voted, [pollId]: selected[pollId] };
+    setVoted(next);
+    saveVoted(next);
+    toast.success("Your vote has been recorded!");
   };
 
   const handleSubmitFeedback = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!feedbackText.trim()) return;
+    if (!feedbackText.trim()) { toast.error("Please write your feedback"); return; }
+    if (rating === 0) { toast.error("Please select a rating"); return; }
     setSubmitted(true);
-    setTimeout(() => {
-      setSubmitted(false);
-      setFeedbackText("");
-      setRating(0);
-    }, 3000);
+    toast.success("Feedback submitted! Thank you for your input.");
+    setTimeout(() => { setSubmitted(false); setFeedbackText(""); setRating(0); }, 4000);
   };
 
   return (

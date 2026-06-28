@@ -1,8 +1,13 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { QUERY_KEYS } from "@/lib/queryKeys";
 import { calculateResourceOptimization, type ResourceDemand } from "@/lib/scoring";
+import {
+  ticketStore, eventStore, announcementStore, maintenanceStore,
+  libraryStore, transportStore, incidentStore, taskStore, settingsStore, bookingStore,
+  type Ticket, type CampusEvent, type Announcement, type MaintenanceTask,
+  type SafetyIncident, type StudentTask, type UserSettings, type RoomBooking,
+} from "@/services/campusStore";
 
-// Mock campus resource data (will be replaced by backend in Phase 5)
 const mockResources: ResourceDemand[] = [
   { label: "Library Reading Halls", demand: 78, capacity: 100 },
   { label: "Computer Labs", demand: 92, capacity: 100 },
@@ -20,41 +25,217 @@ export function useCampusResources() {
   });
 }
 
-// Mock events
-const mockEvents = [
-  { id: "E001", title: "Hackathon 2.0", date: "2026-07-10", venue: "Main Auditorium", registrations: 120, capacity: 200, status: "Open" },
-  { id: "E002", title: "Industry Connect Day", date: "2026-07-15", venue: "Seminar Hall A", registrations: 80, capacity: 80, status: "Full" },
-  { id: "E003", title: "Sports Meet", date: "2026-07-20", venue: "Ground", registrations: 300, capacity: 500, status: "Open" },
-  { id: "E004", title: "AI Symposium", date: "2026-07-25", venue: "Seminar Hall B", registrations: 60, capacity: 100, status: "Open" },
-  { id: "E005", title: "Alumni Talk", date: "2026-08-01", venue: "Main Auditorium", registrations: 150, capacity: 300, status: "Open" },
-];
-
-export function useCampusEvents() {
-  return useQuery({
-    queryKey: QUERY_KEYS.campus.events,
-    queryFn: () => mockEvents,
-    staleTime: 5 * 60 * 1000,
-  });
-}
-
-// Mock complaints
-const mockComplaints = [
-  { id: "C001", category: "Maintenance", subject: "AC not working in Lab 3", status: "Open", priority: "High", createdAt: "2026-06-20", assignedTo: "Maintenance Dept" },
-  { id: "C002", category: "Hostel", subject: "Water supply issue in Block B", status: "In Progress", priority: "High", createdAt: "2026-06-21", assignedTo: "Hostel Warden" },
-  { id: "C003", category: "Academic", subject: "Timetable clash for ECE 3rd year", status: "Resolved", priority: "Medium", createdAt: "2026-06-18", assignedTo: "Academics Cell" },
-  { id: "C004", category: "Safety", subject: "Broken railing near staircase Block C", status: "Open", priority: "Critical", createdAt: "2026-06-23", assignedTo: "Civil Dept" },
-  { id: "C005", category: "Library", subject: "Book reservation system offline", status: "Resolved", priority: "Low", createdAt: "2026-06-15", assignedTo: "Librarian" },
-];
+// ── Tickets ──────────────────────────────────────────────────────────────────
 
 export function useCampusComplaints() {
   return useQuery({
     queryKey: QUERY_KEYS.campus.complaints,
-    queryFn: () => mockComplaints,
-    staleTime: 3 * 60 * 1000,
+    queryFn: () => ticketStore.getAll(),
+    staleTime: 0,
   });
 }
 
-// Mock assets
+export function useAddTicket() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (t: Omit<Ticket, "id" | "createdAt" | "updatedAt" | "comments">) => {
+      const next = ticketStore.add(t);
+      return Promise.resolve(next);
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: QUERY_KEYS.campus.complaints }),
+  });
+}
+
+export function useUpdateTicket() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, patch }: { id: string; patch: Partial<Ticket> }) => {
+      ticketStore.update(id, patch);
+      return Promise.resolve();
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: QUERY_KEYS.campus.complaints }),
+  });
+}
+
+export function useAddTicketComment() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, author, body }: { id: string; author: string; body: string }) => {
+      ticketStore.addComment(id, author, body);
+      return Promise.resolve();
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: QUERY_KEYS.campus.complaints }),
+  });
+}
+
+export function useDeleteTicket() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => { ticketStore.delete(id); return Promise.resolve(); },
+    onSuccess: () => qc.invalidateQueries({ queryKey: QUERY_KEYS.campus.complaints }),
+  });
+}
+
+// ── Events ──────────────────────────────────────────────────────────────────
+
+export function useCampusEvents() {
+  return useQuery({
+    queryKey: QUERY_KEYS.campus.events,
+    queryFn: () => eventStore.getAll(),
+    staleTime: 0,
+  });
+}
+
+export function useAddEvent() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (e: Omit<CampusEvent, "id" | "registrations" | "registeredUsers" | "status">) => {
+      return Promise.resolve(eventStore.add(e));
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: QUERY_KEYS.campus.events }),
+  });
+}
+
+export function useUpdateEvent() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, patch }: { id: string; patch: Partial<CampusEvent> }) => {
+      eventStore.update(id, patch);
+      return Promise.resolve();
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: QUERY_KEYS.campus.events }),
+  });
+}
+
+export function useDeleteEvent() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => { eventStore.delete(id); return Promise.resolve(); },
+    onSuccess: () => qc.invalidateQueries({ queryKey: QUERY_KEYS.campus.events }),
+  });
+}
+
+export function useRegisterEvent() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ eventId, userId }: { eventId: string; userId: string }) => {
+      eventStore.register(eventId, userId);
+      return Promise.resolve();
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: QUERY_KEYS.campus.events }),
+  });
+}
+
+export function useUnregisterEvent() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ eventId, userId }: { eventId: string; userId: string }) => {
+      eventStore.unregister(eventId, userId);
+      return Promise.resolve();
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: QUERY_KEYS.campus.events }),
+  });
+}
+
+// ── Announcements ────────────────────────────────────────────────────────────
+
+export function useAnnouncements() {
+  return useQuery({
+    queryKey: ["announcements"],
+    queryFn: () => announcementStore.getAll(),
+    staleTime: 0,
+  });
+}
+
+export function useAddAnnouncement() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (ann: Omit<Announcement, "id" | "createdAt" | "readBy">) => {
+      return Promise.resolve(announcementStore.add(ann));
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["announcements"] }),
+  });
+}
+
+export function useUpdateAnnouncement() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, patch }: { id: string; patch: Partial<Announcement> }) => {
+      announcementStore.update(id, patch);
+      return Promise.resolve();
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["announcements"] }),
+  });
+}
+
+export function useDeleteAnnouncement() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => { announcementStore.delete(id); return Promise.resolve(); },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["announcements"] }),
+  });
+}
+
+export function useToggleAnnouncementPin() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => { announcementStore.togglePin(id); return Promise.resolve(); },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["announcements"] }),
+  });
+}
+
+export function useMarkAnnouncementRead() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, userId }: { id: string; userId: string }) => {
+      announcementStore.markRead(id, userId);
+      return Promise.resolve();
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["announcements"] }),
+  });
+}
+
+// ── Maintenance ──────────────────────────────────────────────────────────────
+
+export function useMaintenanceTasks() {
+  return useQuery({
+    queryKey: QUERY_KEYS.campus.maintenance,
+    queryFn: () => maintenanceStore.getAll(),
+    staleTime: 0,
+  });
+}
+
+export function useAddMaintenanceTask() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (t: Omit<MaintenanceTask, "id" | "createdAt" | "updatedAt" | "comments">) => {
+      return Promise.resolve(maintenanceStore.add(t));
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: QUERY_KEYS.campus.maintenance }),
+  });
+}
+
+export function useUpdateMaintenanceTask() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, patch }: { id: string; patch: Partial<MaintenanceTask> }) => {
+      maintenanceStore.update(id, patch);
+      return Promise.resolve();
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: QUERY_KEYS.campus.maintenance }),
+  });
+}
+
+export function useDeleteMaintenanceTask() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => { maintenanceStore.delete(id); return Promise.resolve(); },
+    onSuccess: () => qc.invalidateQueries({ queryKey: QUERY_KEYS.campus.maintenance }),
+  });
+}
+
+// ── Assets (read-only) ───────────────────────────────────────────────────────
+
 const mockAssets = [
   { id: "A001", name: "Projector - Main Hall", category: "AV Equipment", status: "Active", health: 92, lastService: "2026-05-10" },
   { id: "A002", name: "Server Rack - Data Center", category: "IT Infrastructure", status: "Active", health: 78, lastService: "2026-06-01" },
@@ -72,58 +253,211 @@ export function useCampusAssets() {
   });
 }
 
-// Mock maintenance work orders
-const mockMaintenanceTasks = [
-  { id: "M001", title: "AC Servicing — Lab Block", priority: "High", status: "In Progress", dueDate: "2026-06-28", assignee: "Rajan Kumar", category: "HVAC" },
-  { id: "M002", title: "Electrical Wiring Check — Block B", priority: "Critical", status: "Open", dueDate: "2026-06-26", assignee: "Murugan T.", category: "Electrical" },
-  { id: "M003", title: "Plumbing repair — Hostel", priority: "Medium", status: "Done", dueDate: "2026-06-22", assignee: "Selvam P.", category: "Civil" },
-  { id: "M004", title: "Network Cable Replacement — CS Dept", priority: "Low", status: "Open", dueDate: "2026-07-05", assignee: "Unassigned", category: "IT" },
-  { id: "M005", title: "Broken window — Seminar Hall B", priority: "Medium", status: "In Progress", dueDate: "2026-06-30", assignee: "Selvam P.", category: "Civil" },
-];
-
-export function useMaintenanceTasks() {
-  return useQuery({
-    queryKey: QUERY_KEYS.campus.maintenance,
-    queryFn: () => mockMaintenanceTasks,
-    staleTime: 3 * 60 * 1000,
-  });
-}
-
-// Mock transport
-const mockTransportRoutes = [
-  { id: "R01", route: "Route 1 — Tambaram", busNo: "TN-01-AB-1234", stops: 8, passengers: 42, capacity: 50, driverName: "Rajendran", status: "Running" },
-  { id: "R02", route: "Route 2 — Velachery", busNo: "TN-01-CD-5678", stops: 6, passengers: 50, capacity: 50, driverName: "Senthil", status: "Full" },
-  { id: "R03", route: "Route 3 — Guindy", busNo: "TN-01-EF-9012", stops: 5, passengers: 30, capacity: 50, driverName: "Kumar", status: "Running" },
-  { id: "R04", route: "Route 4 — Porur", busNo: "TN-01-GH-3456", stops: 7, passengers: 45, capacity: 50, driverName: "Anand", status: "Running" },
-];
+// ── Transport ────────────────────────────────────────────────────────────────
 
 export function useTransportRoutes() {
   return useQuery({
     queryKey: QUERY_KEYS.campus.transport,
-    queryFn: () => mockTransportRoutes,
-    staleTime: 2 * 60 * 1000,
+    queryFn: () => transportStore.getAll(),
+    staleTime: 0,
   });
 }
 
-// Mock library data
-const mockLibraryData = {
-  totalBooks: 45820,
-  checkedOut: 2341,
-  overdue: 187,
-  newArrivals: 45,
-  popularBooks: [
-    { title: "Deep Learning", author: "Goodfellow et al.", borrows: 142, available: 2 },
-    { title: "Clean Code", author: "Robert C. Martin", borrows: 98, available: 5 },
-    { title: "The Pragmatic Programmer", author: "Hunt & Thomas", borrows: 87, available: 3 },
-    { title: "Designing Data-Intensive Apps", author: "Martin Kleppmann", borrows: 76, available: 1 },
-  ],
-  dailyVisitors: [210, 185, 230, 198, 242, 178, 260],
-};
+export function useRequestTransportSeat() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ routeId, userId, name, stop }: { routeId: string; userId: string; name: string; stop: string }) => {
+      transportStore.requestSeat(routeId, userId, name, stop);
+      return Promise.resolve();
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: QUERY_KEYS.campus.transport }),
+  });
+}
+
+export function useCancelTransportSeat() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ routeId, userId }: { routeId: string; userId: string }) => {
+      transportStore.cancelSeat(routeId, userId);
+      return Promise.resolve();
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: QUERY_KEYS.campus.transport }),
+  });
+}
+
+// ── Library ──────────────────────────────────────────────────────────────────
+
+export function useLibraryBooks() {
+  return useQuery({
+    queryKey: QUERY_KEYS.campus.library,
+    queryFn: () => libraryStore.getAll(),
+    staleTime: 0,
+  });
+}
+
+export function useReserveBook() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ bookId, userId }: { bookId: string; userId: string }) => {
+      libraryStore.reserve(bookId, userId);
+      return Promise.resolve();
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: QUERY_KEYS.campus.library }),
+  });
+}
+
+export function useCancelReservation() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ bookId, userId }: { bookId: string; userId: string }) => {
+      libraryStore.cancelReservation(bookId, userId);
+      return Promise.resolve();
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: QUERY_KEYS.campus.library }),
+  });
+}
+
+export function useReturnBook() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ bookId, userId }: { bookId: string; userId: string }) => {
+      libraryStore.returnBook(bookId, userId);
+      return Promise.resolve();
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: QUERY_KEYS.campus.library }),
+  });
+}
+
+// ── Library summary stats (for dashboard) ───────────────────────────────────
 
 export function useLibraryData() {
   return useQuery({
-    queryKey: QUERY_KEYS.campus.library,
-    queryFn: () => mockLibraryData,
-    staleTime: 5 * 60 * 1000,
+    queryKey: ["library_summary"],
+    queryFn: () => {
+      const books = libraryStore.getAll();
+      const checkedOut = books.reduce((a, b) => a + b.checkedOutBy.length, 0);
+      const totalBooks = books.reduce((a, b) => a + b.totalCopies, 0);
+      return {
+        totalBooks: 45820,
+        checkedOut: 2341 + checkedOut,
+        overdue: 187,
+        newArrivals: 45,
+        popularBooks: [...books].sort((a, b) => b.borrows - a.borrows).slice(0, 4).map(b => ({ title: b.title, author: b.author, borrows: b.borrows, available: b.availableCopies })),
+        dailyVisitors: [210, 185, 230, 198, 242, 178, 260],
+      };
+    },
+    staleTime: 0,
+  });
+}
+
+// ── Safety Incidents ─────────────────────────────────────────────────────────
+
+export function useSafetyIncidents() {
+  return useQuery({
+    queryKey: ["safety_incidents"],
+    queryFn: () => incidentStore.getAll(),
+    staleTime: 0,
+  });
+}
+
+export function useReportIncident() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (inc: Omit<SafetyIncident, "id" | "reportedAt" | "status">) => {
+      return Promise.resolve(incidentStore.add(inc));
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["safety_incidents"] }),
+  });
+}
+
+export function useUpdateIncident() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, patch }: { id: string; patch: Partial<SafetyIncident> }) => {
+      incidentStore.update(id, patch);
+      return Promise.resolve();
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["safety_incidents"] }),
+  });
+}
+
+// ── Student Tasks ────────────────────────────────────────────────────────────
+
+export function useStudentTasks() {
+  return useQuery({
+    queryKey: ["student_tasks"],
+    queryFn: () => taskStore.getAll(),
+    staleTime: 0,
+  });
+}
+
+export function useToggleTask() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => { taskStore.toggle(id); return Promise.resolve(); },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["student_tasks"] }),
+  });
+}
+
+export function useAddTask() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (t: Omit<StudentTask, "id" | "done">) => Promise.resolve(taskStore.add(t)),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["student_tasks"] }),
+  });
+}
+
+export function useDeleteTask() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => { taskStore.delete(id); return Promise.resolve(); },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["student_tasks"] }),
+  });
+}
+
+// ── Room Bookings ─────────────────────────────────────────────────────────────
+
+export function useRoomBookings() {
+  return useQuery({
+    queryKey: ["room_bookings"],
+    queryFn: () => bookingStore.getAll(),
+    staleTime: 0,
+  });
+}
+
+export function useAddRoomBooking() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (b: Omit<RoomBooking, "id" | "createdAt" | "status">) => Promise.resolve(bookingStore.add(b)),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["room_bookings"] }),
+  });
+}
+
+export function useCancelRoomBooking() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => { bookingStore.cancel(id); return Promise.resolve(); },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["room_bookings"] }),
+  });
+}
+
+// ── User Settings ────────────────────────────────────────────────────────────
+
+export function useUserSettings(userId: string, userName: string) {
+  return useQuery({
+    queryKey: ["settings", userId],
+    queryFn: () => settingsStore.get(userId, userName),
+    staleTime: 0,
+  });
+}
+
+export function useSaveSettings() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ userId, settings }: { userId: string; settings: UserSettings }) => {
+      settingsStore.save(userId, settings);
+      return Promise.resolve();
+    },
+    onSuccess: (_data, { userId }) => qc.invalidateQueries({ queryKey: ["settings", userId] }),
   });
 }
