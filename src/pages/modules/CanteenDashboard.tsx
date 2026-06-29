@@ -31,10 +31,10 @@ const STATUS_ACTIONS: Record<OrderStatus, string> = {
   Cancelled: "",
 };
 
-const STATUS_BADGE: Record<OrderStatus, "warning" | "info" | "primary" | "success" | "neutral" | "danger"> = {
+const STATUS_BADGE: Record<OrderStatus, "warning" | "info" | "default" | "success" | "neutral" | "danger"> = {
   Pending:   "warning",
   Accepted:  "info",
-  Preparing: "primary",
+  Preparing: "default",
   Ready:     "success",
   Completed: "neutral",
   Cancelled: "danger",

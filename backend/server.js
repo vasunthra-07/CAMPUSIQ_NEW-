@@ -3,6 +3,9 @@ const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
 const crypto = require('crypto');
+const http = require('http');
+const { Server } = require('socket.io');
+const { startIoTSimulator } = require('./services/iotSimulator');
 
 const authRoutes = require('./routes/auth.routes');
 const studentsRoutes = require('./routes/students.routes');
@@ -13,6 +16,7 @@ const ticketsRoutes = require('./routes/tickets.routes');
 const campusBrainRoutes = require('./routes/campusBrain.routes');
 
 const app = express();
+const server = http.createServer(app);
 const PORT = process.env.PORT || 3001;
 const MONGODB_URI = process.env.MONGODB_URI;
 
@@ -62,7 +66,13 @@ app.use('/api', eventsRoutes);
 app.use('/api', ticketsRoutes);
 app.use('/api/brain', campusBrainRoutes); // Campus Brain — executive AI advisor
 
-app.listen(PORT, () => {
+const io = new Server(server, {
+  cors: { origin: true, credentials: true },
+  transports: ['websocket', 'polling']
+});
+startIoTSimulator(io);
+
+server.listen(PORT, () => {
   console.log('\n CampusIQ Backend Running');
   console.log(' API: http://localhost:' + PORT);
   console.log(' DB:  MongoDB Atlas');

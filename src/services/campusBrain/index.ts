@@ -22,3 +22,4 @@ export { RecommendationEngine } from "./RecommendationEngine";
 export { InsightAggregator } from "./InsightAggregator";
 export { brainAIClient } from "./aiClient";
 export { CampusBrainController } from "./CampusBrainController";
+export { DecisionLogService } from "./DecisionLogService";

@@ -46,7 +46,7 @@ const STATUS_CONFIG: Record<OrderStatus, { label: string; color: string; bg: str
 
 export default function Canteen() {
   const { user } = useAuth();
-  const userId = user?.id ?? "guest";
+  const userId = user?.userId ?? "guest";
   const userName = user?.name ?? "Guest";
 
   const { data: menuItems = [] } = useCanteenMenu();

@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 import { AuthUser } from "@/types/auth";
 import { useAuth } from "@/context/AuthContext";
 import { NotificationCenter } from "./NotificationCenter";
+import { useRealtime } from "@/services/realtime/RealtimeContext";
 import { useLocation, useNavigate } from "react-router-dom";
 import { moduleRegistry } from "@/routes/moduleRegistry";
 import { ticketStore, eventStore, announcementStore } from "@/services/campusStore";
@@ -74,6 +75,7 @@ const TYPE_BADGE: Record<SearchResult["type"], string> = {
 };
 
 export default function DashboardLayout({ user, children }: Props) {
+  const { connection } = useRealtime();
   const { logout } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -315,6 +317,10 @@ export default function DashboardLayout({ user, children }: Props) {
           <div className="sm:hidden text-sm font-medium text-foreground truncate">{activeLabel}</div>
 
           <div className="ml-auto flex items-center gap-2">
+            <div className="hidden items-center gap-1.5 rounded-full border border-border bg-muted/40 px-2.5 py-1 text-[10px] font-medium capitalize text-muted-foreground md:flex">
+              <span className={cn("h-2 w-2 rounded-full", connection === "connected" ? "bg-emerald-500" : connection === "offline" ? "bg-red-500" : "animate-pulse bg-amber-500")} />
+              Live {connection}
+            </div>
             <button
               onClick={() => setSearchOpen(true)}
               className="hidden md:flex items-center gap-2 rounded-lg border border-border bg-muted/50 px-3 py-1.5 text-xs text-muted-foreground hover:border-primary/30 transition-colors"

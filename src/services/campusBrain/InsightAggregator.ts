@@ -15,6 +15,7 @@ import type {
   Risk,
   Prediction,
   Recommendation,
+  ExecutiveTimelineEvent,
 } from "./types";
 import { CampusReasoningEngine } from "./CampusReasoningEngine";
 import { PredictionEngine } from "./PredictionEngine";
@@ -72,6 +73,53 @@ function buildContextDigest(
   return L.join("\n");
 }
 
+function buildTimeline(
+  ctx: CampusContext,
+  correlations: BrainSnapshot["correlations"],
+  predictions: Prediction[],
+  recommendations: Recommendation[]
+): ExecutiveTimelineEvent[] {
+  const base = new Date(ctx.generatedAt).getTime();
+  const events: ExecutiveTimelineEvent[] = [];
+  const add = (event: Omit<ExecutiveTimelineEvent, "id">) =>
+    events.push({ id: `timeline-${events.length + 1}`, ...event });
+  correlations.forEach((c, index) => {
+    c.signals.forEach((detail, signalIndex) => add({
+      at: new Date(base - (c.signals.length - signalIndex + 3) * 60_000 - index * 10_000).toISOString(),
+      kind: "signal",
+      title: `${c.module[signalIndex] ?? c.module[0]} signal detected`,
+      detail,
+      sources: [c.module[signalIndex] ?? c.module[0]],
+      evidence: [{ source: c.module[signalIndex] ?? c.module[0], detail }],
+    }));
+    add({
+      at: new Date(base - (3 - Math.min(index, 2)) * 60_000).toISOString(),
+      kind: "correlation",
+      title: "Cross-module cause correlated",
+      detail: c.inference,
+      sources: c.module,
+      evidence: c.signals.map((detail, i) => ({ source: c.module[i] ?? c.module[0], detail })),
+    });
+  });
+  predictions.slice(0, 3).forEach((p, index) => add({
+    at: new Date(base - (2 - Math.min(index, 1)) * 60_000).toISOString(),
+    kind: "prediction",
+    title: p.title,
+    detail: `${p.forecast} Confidence ${p.confidence}%.`,
+    sources: [...new Set(p.evidence.map((e) => e.source))],
+    evidence: p.evidence,
+  }));
+  recommendations.slice(0, 4).forEach((r, index) => add({
+    at: new Date(base - Math.max(0, 60_000 - index * 10_000)).toISOString(),
+    kind: "recommendation",
+    title: "Approval requested",
+    detail: r.problem,
+    sources: r.sourceModules,
+    evidence: r.evidence,
+  }));
+  return events.sort((a, b) => new Date(a.at).getTime() - new Date(b.at).getTime()).slice(-12);
+}
+
 export const InsightAggregator = {
   /** Run every engine over the context and produce the full executive snapshot. */
   aggregate(ctx: CampusContext): BrainSnapshot {
@@ -82,6 +130,7 @@ export const InsightAggregator = {
     const alerts = CampusReasoningEngine.buildAlerts(ctx);
     const predictions: Prediction[] = PredictionEngine.predict(ctx);
     const recommendations: Recommendation[] = RecommendationEngine.recommend(ctx, allRisks, correlations);
+    const timeline = buildTimeline(ctx, correlations, predictions, recommendations);
     const deterministicSummary = CampusReasoningEngine.buildSummary(ctx, health, allRisks);
 
     const topRisks = allRisks.slice(0, 5);
@@ -99,6 +148,7 @@ export const InsightAggregator = {
       correlations,
       predictions,
       recommendations,
+      timeline,
       deterministicSummary,
       contextDigest,
     };

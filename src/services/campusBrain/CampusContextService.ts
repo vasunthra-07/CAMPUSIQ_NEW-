@@ -278,10 +278,35 @@ function buildCommunications(): CommunicationsSlice {
 }
 
 function buildIoT(): IoTSlice {
-  // No sensor bridge connected yet. This slice is intentionally empty so the
-  // reasoning engines can already account for IoT without special-casing.
-  // Wire an MQTT / sensor-API adapter here to light up environmental signals.
-  return { available: false, sensors: [] };
+  try {
+    const snapshot = JSON.parse(localStorage.getItem("campusiq.telemetry.latest") ?? "null") as {
+      buildings?: Array<{
+        id: string; name: string; temperature: number; humidity: number; smoke: number;
+        noise: number; occupancy: number; power: number; airQuality: number; waterLeakage: boolean;
+      }>;
+    } | null;
+    if (!snapshot?.buildings?.length) return { available: false, sensors: [] };
+    const sensors = snapshot.buildings.flatMap((building) => [
+      { kind: "temperature", value: building.temperature, unit: "°C", alert: building.temperature >= 40, warn: building.temperature >= 33 },
+      { kind: "humidity", value: building.humidity, unit: "%", alert: building.humidity >= 85, warn: building.humidity >= 75 },
+      { kind: "smoke", value: building.smoke, unit: "ppm", alert: building.smoke >= 35, warn: building.smoke >= 15 },
+      { kind: "noise", value: building.noise, unit: "dB", alert: building.noise >= 95, warn: building.noise >= 80 },
+      { kind: "occupancy", value: building.occupancy, unit: "people", alert: false, warn: false },
+      { kind: "power", value: building.power, unit: "kW", alert: false, warn: false },
+      { kind: "air-quality", value: building.airQuality, unit: "AQI", alert: building.airQuality >= 180, warn: building.airQuality >= 120 },
+      { kind: "water-leakage", value: building.waterLeakage ? 1 : 0, unit: "binary", alert: building.waterLeakage, warn: false },
+    ].map((sensor) => ({
+      id: `${building.id}-${sensor.kind}`,
+      kind: sensor.kind,
+      location: building.name,
+      value: sensor.value,
+      unit: sensor.unit,
+      status: sensor.alert ? "alert" as const : sensor.warn ? "warn" as const : "ok" as const,
+    })));
+    return { available: true, sensors };
+  } catch {
+    return { available: false, sensors: [] };
+  }
 }
 
 // ─── Public API ──────────────────────────────────────────────────────────────

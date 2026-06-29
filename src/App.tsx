@@ -28,6 +28,10 @@ import CampusAnalytics from "./pages/modules/CampusAnalytics";
 import SettingsPage from "./pages/modules/SettingsPage";
 import CampusIntelligenceCentre from "./pages/CampusIntelligenceCentre";
 import CampusBrain from "./pages/CampusBrain";
+import DigitalTwin from "./pages/DigitalTwin";
+import { RealtimeProvider } from "@/services/realtime/RealtimeContext";
+import { OrchestratorProvider } from "@/services/orchestrator/OrchestratorContext";
+import { EnterpriseAIProvider } from "@/services/ai/EnterpriseAIContext";
 import NoticesBoard from "./pages/modules/NoticesBoard";
 import PollsFeedback from "./pages/modules/PollsFeedback";
 import Canteen from "./pages/modules/Canteen";
@@ -64,6 +68,9 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner position="top-right" />
+      <RealtimeProvider>
+      <OrchestratorProvider>
+      <EnterpriseAIProvider>
       <AuthProvider>
         <CanteenAuthProvider>
           <BrowserRouter>
@@ -83,6 +90,7 @@ const App = () => (
                 <Route index element={<Navigate to="/app/overview" replace />} />
                 <Route path="overview" element={<Overview />} />
                 <Route path="brain" element={<CampusBrain />} />
+                <Route path="digital-twin" element={<DigitalTwin />} />
                 <Route path="student-hub" element={<StudentHub />} />
                 <Route path="assistant" element={<AIAssistant />} />
                 <Route path="faculty" element={<FacultyWorkspace />} />
@@ -108,6 +116,9 @@ const App = () => (
           </BrowserRouter>
         </CanteenAuthProvider>
       </AuthProvider>
+      </EnterpriseAIProvider>
+      </OrchestratorProvider>
+      </RealtimeProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );

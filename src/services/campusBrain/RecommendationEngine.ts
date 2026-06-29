@@ -22,10 +22,17 @@ export const RecommendationEngine = {
       if (actions.length === 0) continue;
       push({
         problem: risk.title,
+        rootCause: risk.summary,
+        evidence: risk.evidence,
+        confidence: Math.min(96, 55 + risk.evidence.length * 8),
         actions,
         priority: risk.priority,
         expectedImpact: Math.min(100, PRIORITY_BASE[risk.priority] + Math.round(risk.impact / 10)),
         module: risk.module,
+        sourceModules: [...new Set(risk.evidence.map((e) => e.source))],
+        reasoningSummary: `${risk.title} was detected from ${risk.evidence.length} current ${risk.module} signal(s); actions are ranked by operational impact.`,
+        createdAt: ctx.generatedAt,
+        approvalRequired: true,
       });
     }
 
@@ -33,10 +40,17 @@ export const RecommendationEngine = {
     for (const c of correlations) {
       push({
         problem: c.inference.split(".")[0] + ".",
+        rootCause: c.inference,
+        evidence: c.signals.map((detail, index) => ({ source: c.module[index] ?? c.module[0], detail })),
+        confidence: c.confidence,
         actions: actionsForCorrelation(c),
         priority: c.confidence >= 65 ? "High" : "Medium",
         expectedImpact: Math.round(c.confidence),
         module: c.module[0],
+        sourceModules: c.module,
+        reasoningSummary: `Campus Brain correlated ${c.signals.length} independently derived signals across ${c.module.join(" and ")}.`,
+        createdAt: ctx.generatedAt,
+        approvalRequired: true,
       });
     }
 
@@ -87,6 +101,14 @@ function actionsForRisk(ctx: CampusContext, risk: Risk): string[] {
       return [
         "Order or e-license additional copies of scarce high-demand titles",
         "Cap loan durations on scarce titles during peak periods",
+      ];
+    case "IoT":
+      return [
+        "Notify Maintenance and the building operations owner",
+        "Inspect the affected sensor and physical system immediately",
+        "Reduce room capacity or isolate the affected zone until readings normalize",
+        "Notify faculty and occupants through Communications Hub",
+        "Log verification readings before closing the alert",
       ];
     default:
       return ["Review the affected module and assign an owner"];

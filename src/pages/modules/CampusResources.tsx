@@ -64,7 +64,7 @@ export default function CampusResources() {
 
   const isLoading = loadingResources || loadingBookings;
 
-  const userId = user?.id ?? "guest";
+  const userId = user?.userId ?? "guest";
   const userName = user?.name ?? "Guest";
 
   const myBookings = useMemo(() =>

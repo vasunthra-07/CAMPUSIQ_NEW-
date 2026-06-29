@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Bell, Check, CheckCheck } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { useRealtime } from "@/services/realtime/RealtimeContext";
 
 type NotificationType = "critical" | "intervention" | "alert" | "info" | "success";
 
@@ -21,9 +22,18 @@ const INITIAL_NOTIFICATIONS: Notification[] = [
 ];
 
 export function NotificationCenter() {
+  const { alerts } = useRealtime();
   const [notifications, setNotifications] = useState<Notification[]>(INITIAL_NOTIFICATIONS);
+  const liveNotifications: Notification[] = alerts.slice(0, 12).map((alert, index) => ({
+    id: 10_000 + index,
+    type: "critical",
+    message: `${alert.buildingName}: ${alert.message}`,
+    time: new Date(alert.at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+    read: false,
+  }));
+  const visibleNotifications = [...liveNotifications, ...notifications];
 
-  const unreadCount = notifications.filter((n) => !n.read).length;
+  const unreadCount = visibleNotifications.filter((n) => !n.read).length;
 
   const markAllRead = () => {
     setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
@@ -60,13 +70,13 @@ export function NotificationCenter() {
         </div>
         
         <div className="max-h-[350px] overflow-y-auto hide-scrollbar flex flex-col">
-          {notifications.length === 0 ? (
+          {visibleNotifications.length === 0 ? (
             <div className="p-6 text-center text-muted-foreground text-sm">
               <Check className="h-8 w-8 mx-auto mb-2 opacity-50" />
               <p>You're all caught up!</p>
             </div>
           ) : (
-            notifications.map((n) => (
+            visibleNotifications.map((n) => (
               <button
                 key={n.id}
                 onClick={() => toggleRead(n.id)}

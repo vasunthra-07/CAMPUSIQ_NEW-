@@ -1,7 +1,7 @@
 import {
   Home, GraduationCap, Brain, BrainCircuit, Users, Building2, Calendar,
   Wrench, Activity, ShieldAlert, Car, BookOpen, BarChart3, Settings,
-  Headset, Briefcase, Bell, Network, BarChart2, UtensilsCrossed, LucideIcon
+  Headset, Briefcase, Bell, Network, BarChart2, UtensilsCrossed, LucideIcon, Blocks
 } from "lucide-react";
 import { Role } from "@/types/auth";
 
@@ -30,6 +30,13 @@ export const moduleRegistry: ModuleDefinition[] = [
     id: "brain",
     label: "Campus Brain",
     icon: BrainCircuit,
+    allowedRoles: ADMIN_ROLES,
+  },
+  {
+    path: "/app/digital-twin",
+    id: "digital-twin",
+    label: "Campus Digital Twin",
+    icon: Blocks,
     allowedRoles: ADMIN_ROLES,
   },
   {

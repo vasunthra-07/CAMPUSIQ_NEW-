@@ -254,10 +254,35 @@ export interface Prediction {
 export interface Recommendation {
   id: string;
   problem: string;
+  rootCause: string;
+  evidence: Evidence[];
+  confidence: number;
   actions: string[];
   priority: Priority;
   expectedImpact: number; // 0–100, used for ordering
   module: ModuleSource;
+  sourceModules: ModuleSource[];
+  reasoningSummary: string;
+  createdAt: string;
+  approvalRequired: true;
+}
+
+export type DecisionStatus = "Pending" | "Approved" | "Rejected";
+export interface DecisionRecord {
+  recommendationId: string;
+  status: DecisionStatus;
+  decidedAt?: string;
+  decidedBy?: string;
+}
+export type TimelineKind = "signal" | "correlation" | "prediction" | "recommendation";
+export interface ExecutiveTimelineEvent {
+  id: string;
+  at: string;
+  kind: TimelineKind;
+  title: string;
+  detail: string;
+  sources: ModuleSource[];
+  evidence: Evidence[];
 }
 
 // ─── Priority dashboard counts ───────────────────────────────────────────────
@@ -279,6 +304,7 @@ export interface BrainSnapshot {
   correlations: Correlation[];
   predictions: Prediction[];
   recommendations: Recommendation[];
+  timeline: ExecutiveTimelineEvent[];
   /** A deterministic, template-built executive summary (always available). */
   deterministicSummary: string;
   /** The compact context digest handed to the LLM for narration. */

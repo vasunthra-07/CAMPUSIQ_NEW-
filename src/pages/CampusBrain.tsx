@@ -12,15 +12,19 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  BrainCircuit, RefreshCw, Activity, AlertTriangle, ShieldAlert, TrendingUp,
+  BrainCircuit, Activity, AlertTriangle, ShieldAlert, TrendingUp,
   Lightbulb, Sparkles, Send, Target, Network, Clock, ChevronRight, Gauge, CheckCircle2,
+  XCircle, GitBranch,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { PageHeader, WorkspacePanel, MetricTile, StatusBadge } from "@/components/workspace";
 import { cn } from "@/lib/utils";
-import { CampusBrainController } from "@/services/campusBrain";
+import { CampusBrainController, DecisionLogService } from "@/services/campusBrain";
+import { useRealtime } from "@/services/realtime/RealtimeContext";
+import { DecisionPanel, ResiliencePanel, SimulationPanel } from "@/components/orchestrator/ExecutiveOrchestration";
+import { AIReasoningPanel, CampusMemoryPanel, EnterpriseDecisionPanel } from "@/components/ai/EnterpriseAI";
 import type {
-  BrainSnapshot, BrainAIResponse, Priority, Risk, Recommendation,
+  BrainSnapshot, BrainAIResponse, Priority, Risk, Recommendation, DecisionRecord,
 } from "@/services/campusBrain";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -96,25 +100,24 @@ function HealthGauge({ score, label, trend }: { score: number; label: string; tr
 // ─── Main page ───────────────────────────────────────────────────────────────
 export default function CampusBrain() {
   const { user } = useAuth();
+  const { revision, connection } = useRealtime();
   const role = user?.role ?? "Administrator";
 
   const [snapshot, setSnapshot] = useState<BrainSnapshot | null>(null);
   const [summary, setSummary] = useState<BrainAIResponse | null>(null);
   const [summaryLoading, setSummaryLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
 
   const [chat, setChat] = useState<ChatTurn[]>([]);
   const [input, setInput] = useState("");
   const [asking, setAsking] = useState(false);
+  const [decisions, setDecisions] = useState<Record<string, DecisionRecord>>(() => DecisionLogService.getAll());
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   const loadSnapshot = useCallback(async () => {
-    setRefreshing(true);
     setSummaryLoading(true);
     // Deterministic snapshot is instant.
     const snap = CampusBrainController.getSnapshot();
     setSnapshot(snap);
-    setRefreshing(false);
     // AI narration (async, falls back gracefully).
     try {
       const s = await CampusBrainController.narrateSummary(snap, role);
@@ -124,7 +127,7 @@ export default function CampusBrain() {
     }
   }, [role]);
 
-  useEffect(() => { loadSnapshot(); }, [loadSnapshot]);
+  useEffect(() => { loadSnapshot(); }, [loadSnapshot, revision]);
   useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [chat, asking]);
 
   const ask = useCallback(async (q?: string) => {
@@ -154,6 +157,10 @@ export default function CampusBrain() {
 
   const { health, priorities, topRisks, topOpportunities, alerts, correlations, predictions, recommendations } = snapshot;
   const updated = new Date(snapshot.generatedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  const decide = (id: string, status: "Approved" | "Rejected") => {
+    const record = DecisionLogService.decide(id, status, role);
+    setDecisions((current) => ({ ...current, [id]: record }));
+  };
 
   return (
     <div className="space-y-6 pb-12">
@@ -168,14 +175,8 @@ export default function CampusBrain() {
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-60" />
                 <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
               </span>
-              <span className="text-[11px] font-semibold text-emerald-700">Analysing live</span>
+              <span className="text-[11px] font-semibold text-emerald-700">Live · {connection}</span>
             </div>
-            <button
-              onClick={loadSnapshot}
-              className="btn-secondary flex items-center gap-2 rounded-lg px-3 py-2 text-sm"
-            >
-              <RefreshCw className={cn("h-4 w-4", refreshing && "animate-spin")} /> Refresh
-            </button>
           </div>
         }
       />
@@ -241,15 +242,52 @@ export default function CampusBrain() {
         <MetricTile label="Low" value={priorities.Low} icon={CheckCircle2} variant="success" subtitle="Monitor" delay={0.2} />
       </div>
 
+      <ResiliencePanel />
+      <AIReasoningPanel />
+      <EnterpriseDecisionPanel />
+      <CampusMemoryPanel />
+      <SimulationPanel />
+      <DecisionPanel />
+
       {/* ── Top Risks + Recommended Actions ──────────────────────────────── */}
       <div className="grid gap-4 lg:grid-cols-2">
         <WorkspacePanel title="Top Risks" description="Ranked by operational impact" icon={AlertTriangle} delay={0.05}>
           <RiskList risks={topRisks} />
         </WorkspacePanel>
         <WorkspacePanel title="Recommended Actions" description="Prioritised by expected impact" icon={Target} delay={0.1}>
-          <RecommendationList recs={recommendations.slice(0, 5)} />
+          <RecommendationList recs={recommendations.slice(0, 5)} decisions={decisions} onDecide={decide} />
         </WorkspacePanel>
       </div>
+
+      <WorkspacePanel title="Executive Timeline" description="Signals → reasoning → prediction → approval request" icon={GitBranch} delay={0.05}>
+        {snapshot.timeline.length === 0 ? (
+          <EmptyNote text="No causal sequence is available for the current cycle." />
+        ) : (
+          <div className="relative ml-2 space-y-0 border-l border-border">
+            {snapshot.timeline.map((event) => (
+              <motion.div
+                key={event.id}
+                initial={{ opacity: 0, x: -6 }}
+                animate={{ opacity: 1, x: 0 }}
+                className="relative grid gap-1 py-3 pl-6 sm:grid-cols-[72px_1fr]"
+              >
+                <span className="absolute -left-1.5 top-5 h-3 w-3 rounded-full border-2 border-background bg-primary" />
+                <time className="text-xs font-semibold tabular-nums text-primary">
+                  {new Date(event.at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                </time>
+                <div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <p className="text-sm font-medium text-foreground">{event.title}</p>
+                    <StatusBadge variant="neutral">{event.kind}</StatusBadge>
+                  </div>
+                  <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">{event.detail}</p>
+                  <p className="mt-1 text-[10px] uppercase tracking-wide text-muted-foreground">Sources: {event.sources.join(", ")}</p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        )}
+      </WorkspacePanel>
 
       {/* ── Predictions + Cross-module reasoning ─────────────────────────── */}
       <div className="grid gap-4 lg:grid-cols-2">
@@ -443,7 +481,15 @@ function RiskList({ risks }: { risks: Risk[] }) {
   );
 }
 
-function RecommendationList({ recs }: { recs: Recommendation[] }) {
+function RecommendationList({
+  recs,
+  decisions,
+  onDecide,
+}: {
+  recs: Recommendation[];
+  decisions: Record<string, DecisionRecord>;
+  onDecide: (id: string, status: "Approved" | "Rejected") => void;
+}) {
   if (recs.length === 0) return <EmptyNote text="No recommended actions — nothing needs intervention right now." />;
   return (
     <div className="space-y-3">
@@ -453,6 +499,11 @@ function RecommendationList({ recs }: { recs: Recommendation[] }) {
             <p className="text-sm font-medium text-foreground">{r.problem}</p>
             <StatusBadge variant={PRIORITY_VARIANT[r.priority]}>{r.priority}</StatusBadge>
           </div>
+          <div className="mt-2 grid gap-2 rounded-md bg-muted/30 p-2.5 text-xs">
+            <p><span className="font-semibold text-foreground">Root cause:</span> <span className="text-muted-foreground">{r.rootCause}</span></p>
+            <p><span className="font-semibold text-foreground">Evidence:</span> <span className="text-muted-foreground">{r.evidence.map((e) => `${e.source}: ${e.detail}${e.value !== undefined ? ` (${e.value})` : ""}`).join(" · ")}</span></p>
+            <p><span className="font-semibold text-foreground">Reasoning:</span> <span className="text-muted-foreground">{r.reasoningSummary}</span></p>
+          </div>
           <ul className="mt-2 space-y-1">
             {r.actions.map((a, i) => (
               <li key={i} className="flex items-start gap-2 text-xs text-muted-foreground">
@@ -460,6 +511,27 @@ function RecommendationList({ recs }: { recs: Recommendation[] }) {
               </li>
             ))}
           </ul>
+          <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-border pt-3">
+            <StatusBadge variant="info">{r.confidence}% confidence</StatusBadge>
+            <StatusBadge variant="neutral">{r.expectedImpact}% impact</StatusBadge>
+            <span className="text-[10px] text-muted-foreground">{new Date(r.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} · {r.sourceModules.join(", ")}</span>
+            <div className="ml-auto flex items-center gap-2">
+              {decisions[r.id] ? (
+                <StatusBadge variant={decisions[r.id].status === "Approved" ? "success" : "danger"}>
+                  {decisions[r.id].status}
+                </StatusBadge>
+              ) : (
+                <>
+                  <button onClick={() => onDecide(r.id, "Rejected")} className="flex items-center gap-1 rounded-md border border-border px-2 py-1 text-xs text-muted-foreground hover:text-foreground">
+                    <XCircle className="h-3.5 w-3.5" /> Reject
+                  </button>
+                  <button onClick={() => onDecide(r.id, "Approved")} className="flex items-center gap-1 rounded-md bg-primary px-2 py-1 text-xs text-primary-foreground">
+                    <CheckCircle2 className="h-3.5 w-3.5" /> Approve
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
         </div>
       ))}
     </div>

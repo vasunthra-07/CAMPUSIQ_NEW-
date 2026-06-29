@@ -113,6 +113,18 @@ function detectRisks(ctx: CampusContext): Risk[] {
   const risks: Risk[] = [];
   const push = (r: Omit<Risk, "id">) => risks.push({ id: `risk-${risks.length + 1}`, ...r });
 
+  const sensorAlerts = ctx.iot.sensors.filter((sensor) => sensor.status === "alert");
+  if (sensorAlerts.length > 0) {
+    push({
+      title: `${sensorAlerts.length} critical building sensor alert(s)`,
+      priority: sensorAlerts.some((sensor) => sensor.kind === "smoke" || sensor.kind === "water-leakage") ? "Critical" : "High",
+      module: "IoT",
+      summary: `Live environmental thresholds are exceeded at ${[...new Set(sensorAlerts.map((sensor) => sensor.location))].join(", ")}.`,
+      impact: Math.min(100, 72 + sensorAlerts.length * 6),
+      evidence: sensorAlerts.map((sensor) => ({ source: "IoT", detail: `${sensor.kind} at ${sensor.location}`, value: `${sensor.value} ${sensor.unit}` })),
+    });
+  }
+
   // Safety — always highest priority.
   if (ctx.safety.critical > 0 || ctx.safety.high > 0) {
     push({
@@ -273,6 +285,18 @@ function correlate(ctx: CampusContext): Correlation[] {
   const out: Correlation[] = [];
   const push = (c: Omit<Correlation, "id">) => out.push({ id: `corr-${out.length + 1}`, ...c });
 
+  const hot = ctx.iot.sensors.filter((sensor) => sensor.kind === "temperature" && sensor.value >= 33);
+  const occupied = ctx.iot.sensors.filter((sensor) => sensor.kind === "occupancy" && sensor.value >= 200);
+  hot.forEach((temperature) => {
+    const occupancy = occupied.find((sensor) => sensor.location === temperature.location);
+    if (occupancy) push({
+      signals: [`${temperature.value}${temperature.unit} at ${temperature.location}`, `${occupancy.value} occupants in the same building`],
+      inference: `High temperature combined with heavy occupancy at ${temperature.location} indicates HVAC overload and rising comfort and equipment risk.`,
+      confidence: temperature.value >= 40 ? 91 : 78,
+      module: ["IoT", "Resources", "Maintenance"],
+    });
+  });
+
   // Attendance dip + transport delay → likely commute-driven, not disengagement.
   if (ctx.students.fallingAttendance >= 2 && (ctx.transport.delayed > 0 || ctx.transport.full > 0)) {
     push({
@@ -338,6 +362,9 @@ function buildAlerts(ctx: CampusContext): Alert[] {
   const at = ctx.generatedAt;
   const push = (title: string, priority: Priority, module: Alert["module"], detail: string) =>
     alerts.push({ id: `alert-${alerts.length + 1}`, title, priority, module, detail, at });
+  ctx.iot.sensors.filter((sensor) => sensor.status === "alert").forEach((sensor) =>
+    push(`${sensor.kind} sensor alert`, sensor.kind === "smoke" || sensor.kind === "water-leakage" ? "Critical" : "High", "IoT", `${sensor.location}: ${sensor.value} ${sensor.unit}`)
+  );
 
   ctx.safety.unresolvedCritical.forEach((i) =>
     push(`${i.severity} safety incident`, i.severity === "Critical" ? "Critical" : "High", "Safety", `${i.type} at ${i.location} — ${i.status}`)

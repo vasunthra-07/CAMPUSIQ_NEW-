@@ -20,6 +20,19 @@ export const PredictionEngine = {
     const preds: Prediction[] = [];
     const push = (p: Omit<Prediction, "id">) => preds.push({ id: `pred-${preds.length + 1}`, ...p });
 
+    const environmentalWarnings = ctx.iot.sensors.filter((sensor) => sensor.status !== "ok");
+    if (environmentalWarnings.length > 0) {
+      const locations = [...new Set(environmentalWarnings.map((sensor) => sensor.location))];
+      push({
+        title: "Building environment escalation",
+        forecast: `${locations.join(", ")} may cross additional operating thresholds if current sensor drift continues. Reduce load and inspect affected systems.`,
+        confidence: Math.min(94, 60 + environmentalWarnings.filter((sensor) => sensor.status === "alert").length * 8),
+        module: "IoT",
+        horizon: "Next 30 minutes",
+        evidence: environmentalWarnings.slice(0, 6).map((sensor) => ({ source: "IoT", detail: `${sensor.kind} at ${sensor.location}`, value: `${sensor.value} ${sensor.unit}` })),
+      });
+    }
+
     // 1. Attendance / dropout trajectory.
     const wk = ctx.students.weeklyRiskTrend;
     if (wk.length >= 3) {

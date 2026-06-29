@@ -12,6 +12,9 @@ function loadStore<T>(key: string, initial: T): T {
 
 function saveStore<T>(key: string, data: T): void {
   localStorage.setItem(`ciq_${key}`, JSON.stringify(data));
+  window.dispatchEvent(new CustomEvent("campusiq:module-change", {
+    detail: { module: key, action: "updated", at: new Date().toISOString() },
+  }));
 }
 
 // ── Types ──────────────────────────────────────────────────────────────────

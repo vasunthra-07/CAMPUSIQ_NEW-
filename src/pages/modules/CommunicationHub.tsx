@@ -75,7 +75,7 @@ export default function CommunicationHub() {
   const submitAnnouncement = (ev: React.FormEvent) => {
     ev.preventDefault();
     if (!validateForm()) return;
-    addAnn.mutate({ ...form, author: user?.name ?? "Admin", readBy: [] }, {
+    addAnn.mutate({ ...form, author: user?.name ?? "Admin" }, {
       onSuccess: () => { toast.success("Announcement published"); setCompose(false); setForm(EMPTY_FORM); setFormErrors({}); },
     });
   };
@@ -83,7 +83,7 @@ export default function CommunicationHub() {
   const sendBroadcast = (ev: React.FormEvent) => {
     ev.preventDefault();
     if (!broadcastTitle.trim() || !broadcastMessage.trim()) { toast.error("Title and message are required"); return; }
-    addAnn.mutate({ title: broadcastTitle, body: broadcastMessage, author: user?.name ?? "Admin", category: "General", priority: "Important", pinned: false, readBy: [] }, {
+    addAnn.mutate({ title: broadcastTitle, body: broadcastMessage, author: user?.name ?? "Admin", category: "General", priority: "Important", pinned: false }, {
       onSuccess: () => {
         toast.success(`Broadcast sent to ${recipient} (${DEPT_CHANNELS.find(c => c.name === recipient)?.members ?? 0} recipients)`);
         setBroadcastOpen(false); setBroadcastTitle(""); setBroadcastMessage("");
@@ -93,7 +93,7 @@ export default function CommunicationHub() {
 
   const sendEmergencyAlert = () => {
     if (!emergencyMsg.trim()) { toast.error("Emergency message is required"); return; }
-    addAnn.mutate({ title: "🚨 EMERGENCY ALERT", body: emergencyMsg, author: user?.name ?? "Admin", category: "Safety", priority: "Urgent", pinned: true, readBy: [] }, {
+    addAnn.mutate({ title: "🚨 EMERGENCY ALERT", body: emergencyMsg, author: user?.name ?? "Admin", category: "Safety", priority: "Urgent", pinned: true }, {
       onSuccess: () => {
         toast.error("Emergency alert sent to all campus members!", { duration: 8000 });
         setEmergencyConfirm(false); setEmergencyMsg("");

@@ -139,7 +139,50 @@ npm run dev                      # open /app/brain  (sign in as HOD / Principal 
 
 ## Extending to IoT
 
-`CampusContextService.buildIoT()` returns an empty `IoTSlice` today. Wire an MQTT
-bridge or sensor API there to populate `iot.sensors`; the reasoning, prediction
-and recommendation engines already carry an `IoT` source type and will start
-incorporating sensor signals with no other changes.
+CampusIQ now includes a provider-neutral live telemetry layer. The backend
+simulator publishes temperature, humidity, smoke, noise, occupancy, power,
+water-leakage and air-quality readings for eight buildings through Socket.IO
+every four seconds. `CampusContextService.buildIoT()` consumes the latest
+snapshot, so every sensor tick automatically recomputes risks, correlations,
+predictions, recommendations and the executive timeline.
+
+The simulator is isolated in `backend/services/iotSimulator.js`. A future MQTT
+adapter only needs to publish the same `CampusTelemetry` snapshot contract;
+Digital Twin and Campus Brain require no redesign.
+
+---
+
+## Campus Orchestrator
+
+`src/services/orchestrator/CampusOrchestrator.ts` is the coordination plane
+above Campus Brain. It converts live or simulated incidents into deterministic,
+explainable multi-step workflows: risk assessment, action planning, department
+assignment, targeted notification, timeline updates and Digital Twin state.
+
+Every executive decision includes its evidence, reasoning steps, confidence,
+alternatives, expected outcome, responsible departments, estimated resolution
+time and affected population. The orchestrator also computes the nine-dimension
+Campus Resilience Score.
+
+The What-If Simulator publishes scenarios through the existing Socket.IO
+channel. Fire, power failure, flood, bus delay, internet outage, HVAC failure,
+overcrowding and medical emergency therefore use the same pipeline as live
+events. Executive Presentation Mode runs an automatic eight-step, 49-second
+incident narrative through that pipeline without manual interaction.
+
+---
+
+## Enterprise multi-agent AI and campus memory
+
+Campus Brain coordinates six evidence-bound specialists under
+`src/services/ai/agents`: Academic, Maintenance, Transport, Security, Energy and
+Communication. `AgentCoordinator` selects relevant agents for each orchestrated
+incident; `DecisionFusionEngine` combines their evidence and recommendations,
+records disagreement, and resolves it into one executive decision.
+
+`CampusMemory` persists incident context, actions and outcomes locally.
+`PatternRecognitionEngine` retrieves similar prior events while
+`LearningEngine` adjusts confidence from resolved outcomes. The executive UI
+shows animated agent execution, current and historical evidence, similar
+incidents, learning confidence, historical accuracy, recommendation success,
+patterns learned and institutional knowledge KPIs.
