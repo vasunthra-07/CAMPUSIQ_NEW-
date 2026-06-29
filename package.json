@@ -10,7 +10,9 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "screenshots": "npm run build && node scripts/screenshots/run.mjs --brain",
+    "screenshots:capture": "node scripts/screenshots/run.mjs --brain"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",

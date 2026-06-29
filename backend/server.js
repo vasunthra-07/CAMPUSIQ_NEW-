@@ -10,6 +10,7 @@ const aiRoutes = require('./routes/ai.routes');
 const resourcesRoutes = require('./routes/resources.routes');
 const eventsRoutes = require('./routes/events.routes');
 const ticketsRoutes = require('./routes/tickets.routes');
+const campusBrainRoutes = require('./routes/campusBrain.routes');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -40,7 +41,7 @@ app.use(cors({
   },
   credentials: true
 }));
-app.use(express.json());
+app.use(express.json({ limit: '1mb' }));
 
 // Health check
 app.get('/', (req, res) => {
@@ -59,10 +60,12 @@ app.use('/api/ai', aiRoutes);
 app.use('/api', resourcesRoutes);
 app.use('/api', eventsRoutes);
 app.use('/api', ticketsRoutes);
+app.use('/api/brain', campusBrainRoutes); // Campus Brain — executive AI advisor
 
 app.listen(PORT, () => {
   console.log('\n CampusIQ Backend Running');
   console.log(' API: http://localhost:' + PORT);
   console.log(' DB:  MongoDB Atlas');
-  console.log(' AI:  Ollama :11434\n');
+  console.log(' AI:  Ollama :11434');
+  console.log(' Brain: /api/brain (provider: ' + (process.env.AI_PROVIDER || 'ollama') + ')\n');
 });

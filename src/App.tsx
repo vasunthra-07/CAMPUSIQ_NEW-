@@ -27,6 +27,7 @@ import LibraryIntelligence from "./pages/modules/LibraryIntelligence";
 import CampusAnalytics from "./pages/modules/CampusAnalytics";
 import SettingsPage from "./pages/modules/SettingsPage";
 import CampusIntelligenceCentre from "./pages/CampusIntelligenceCentre";
+import CampusBrain from "./pages/CampusBrain";
 import NoticesBoard from "./pages/modules/NoticesBoard";
 import PollsFeedback from "./pages/modules/PollsFeedback";
 import Canteen from "./pages/modules/Canteen";
@@ -81,6 +82,7 @@ const App = () => (
               <Route path="/app" element={<ProtectedLayout />}>
                 <Route index element={<Navigate to="/app/overview" replace />} />
                 <Route path="overview" element={<Overview />} />
+                <Route path="brain" element={<CampusBrain />} />
                 <Route path="student-hub" element={<StudentHub />} />
                 <Route path="assistant" element={<AIAssistant />} />
                 <Route path="faculty" element={<FacultyWorkspace />} />

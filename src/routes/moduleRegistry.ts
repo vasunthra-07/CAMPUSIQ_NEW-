@@ -1,5 +1,5 @@
 import {
-  Home, GraduationCap, Brain, Users, Building2, Calendar,
+  Home, GraduationCap, Brain, BrainCircuit, Users, Building2, Calendar,
   Wrench, Activity, ShieldAlert, Car, BookOpen, BarChart3, Settings,
   Headset, Briefcase, Bell, Network, BarChart2, UtensilsCrossed, LucideIcon
 } from "lucide-react";
@@ -24,6 +24,13 @@ export const moduleRegistry: ModuleDefinition[] = [
     label: "Campus Command Center",
     icon: Home,
     allowedRoles: ALL_ROLES,
+  },
+  {
+    path: "/app/brain",
+    id: "brain",
+    label: "Campus Brain",
+    icon: BrainCircuit,
+    allowedRoles: ADMIN_ROLES,
   },
   {
     path: "/app/student-hub",
